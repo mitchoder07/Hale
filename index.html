@@ -1,0 +1,3865 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hale · Family Medicine, Providence</title>
+    <meta name="description"
+        content="A small family practice in Providence. Sixty minute first visits, same week appointments, flat published prices, and a doctor who knows your chart.">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Crect x='1' y='1' width='42' height='42' rx='11' fill='%2322303E'/%3E%3Cpath d='M22 12v20M12 22h20' stroke='%23F6F1E7' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M7 22h6l3-6 4 12 3-6h14' stroke='%23D64538' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Caveat:wght@500;600&family=Public+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ============================================================
+   TOKENS + BASE · the whole page is a patient chart
+============================================================ */
+        :root {
+            --paper: #F7F2E9;
+            --paper-2: #F0E9DA;
+            --cream: #FCFAF3;
+            --ink: #22303E;
+            --ink-soft: #5A6470;
+            --ink-faint: rgba(34, 48, 62, .34);
+            --line: rgba(34, 48, 62, .14);
+            --red: #D64538;
+            --red-deep: #B23428;
+            --green: #2E7D64;
+            --navy-2: #1C2937;
+            --mono: "Space Mono", ui-monospace, monospace;
+            --sans: "Public Sans", Segoe UI, sans-serif;
+            --disp: "Archivo", Segoe UI, sans-serif;
+            --hand: "Caveat", cursive;
+            --pad: clamp(1.25rem, 5vw, 5rem);
+            --ease: cubic-bezier(.22, .75, .25, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+            html {
+                scroll-behavior: auto
+            }
+        }
+
+        ::selection {
+            background: var(--red);
+            color: var(--cream)
+        }
+
+        body {
+            font-family: var(--sans);
+            color: var(--ink);
+            background: var(--paper);
+            line-height: 1.65;
+            font-size: 16px;
+            overflow-x: clip;
+            -webkit-font-smoothing: antialiased;
+            /* ECG chart paper: fine red grid with bolder major lines */
+            background-image:
+                linear-gradient(rgba(214, 69, 56, .10) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(214, 69, 56, .10) 1px, transparent 1px),
+                linear-gradient(rgba(214, 69, 56, .045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(214, 69, 56, .045) 1px, transparent 1px);
+            background-size: 140px 140px, 140px 140px, 28px 28px, 28px 28px;
+        }
+
+        body::before {
+            /* paper grain */
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            pointer-events: none;
+            opacity: .05;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        body.no-scroll {
+            overflow: hidden
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none
+        }
+
+        button {
+            background: none;
+            border: 0;
+            color: inherit;
+            font: inherit;
+            cursor: pointer
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--red);
+            outline-offset: 3px;
+            border-radius: 2px
+        }
+
+        .wrap {
+            max-width: 1280px;
+            margin-inline: auto;
+            padding-inline: var(--pad)
+        }
+
+        section {
+            scroll-margin-top: 90px;
+            position: relative
+        }
+
+        .skip {
+            position: fixed;
+            left: 1rem;
+            top: -4rem;
+            z-index: 600;
+            background: var(--ink);
+            color: var(--cream);
+            padding: .7em 1.2em;
+            border-radius: 4px;
+            transition: top .3s
+        }
+
+        .skip:focus {
+            top: 1rem
+        }
+
+        h1,
+        h2,
+        h3,
+        .disp {
+            font-family: var(--disp);
+            font-stretch: 112%;
+            font-weight: 640;
+            letter-spacing: -.02em;
+            color: var(--ink)
+        }
+
+        .big {
+            font-size: clamp(2.3rem, 5.2vw, 4.4rem);
+            line-height: 1.05;
+            max-width: 24ch
+        }
+
+        .big em {
+            font-style: italic;
+            font-weight: 560;
+            color: var(--red)
+        }
+
+        .lede {
+            max-width: 56ch;
+            color: var(--ink-soft);
+            font-size: clamp(1rem, 1.4vw, 1.13rem);
+            line-height: 1.85
+        }
+
+        .label {
+            font-family: var(--mono);
+            font-weight: 400;
+            font-size: .66rem;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        .kicker {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+            margin-bottom: clamp(1.4rem, 3vw, 2.2rem)
+        }
+
+        .kicker::before {
+            content: "";
+            width: 2.4rem;
+            height: 2px;
+            background: var(--red)
+        }
+
+        .sec-head {
+            margin-bottom: clamp(2.4rem, 6vw, 4.4rem)
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .7rem;
+            font-weight: 700;
+            font-size: .72rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            padding: 1.05em 1.8em;
+            border-radius: 4px;
+            transition: background .3s, color .3s, border-color .3s, transform .3s var(--ease);
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: scale(.97)
+        }
+
+        .btn--red {
+            background: var(--red);
+            color: var(--cream)
+        }
+
+        .btn--red:hover {
+            background: var(--red-deep)
+        }
+
+        .btn--ink {
+            background: var(--ink);
+            color: var(--cream)
+        }
+
+        .btn--ink:hover {
+            background: var(--navy-2)
+        }
+
+        .btn--ghost {
+            border: 1px solid var(--ink-faint);
+            color: var(--ink)
+        }
+
+        .btn--ghost:hover {
+            border-color: var(--ink);
+            background: rgba(34, 48, 62, .05)
+        }
+
+        .rv {
+            opacity: 0;
+            translate: 0 26px;
+            transition: opacity .6s ease, translate .6s ease;
+            transition-delay: var(--d, 0s)
+        }
+
+        .rv.in {
+            opacity: 1;
+            translate: 0 0
+        }
+
+        /* ============================================================
+   CHART TAB NAV (divider tabs, desktop)
+============================================================ */
+        .tabs {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            translate: 0 -50%;
+            z-index: 150;
+            display: flex;
+            flex-direction: column;
+            gap: 3px
+        }
+
+        .tabs a {
+            writing-mode: vertical-rl;
+            font-family: var(--mono);
+            font-size: .58rem;
+            letter-spacing: .24em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            background: var(--cream);
+            border: 1px solid var(--line);
+            border-left: 3px solid transparent;
+            padding: 1rem .45rem;
+            border-radius: 0 6px 6px 0;
+            transition: all .3s var(--ease);
+        }
+
+        .tabs a b {
+            color: var(--red);
+            font-weight: 400;
+            margin-top: .5rem
+        }
+
+        .tabs a:hover {
+            translate: 4px 0;
+            color: var(--ink)
+        }
+
+        .tabs a.on {
+            background: var(--red);
+            border-left-color: var(--red-deep);
+            color: var(--cream)
+        }
+
+        .tabs a.on b {
+            color: var(--cream)
+        }
+
+        @media (max-width:1239px) {
+            .tabs {
+                display: none
+            }
+        }
+
+        /* ============================================================
+   HEADER
+============================================================ */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: .9rem var(--pad);
+            transition: background .4s, box-shadow .4s;
+        }
+
+        header.scrolled {
+            background: rgba(247, 242, 233, .92);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 0 var(--line)
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: .7rem
+        }
+
+        .mark {
+            width: 2rem;
+            height: 2rem;
+            flex: none
+        }
+
+        .logo b {
+            font-family: var(--disp);
+            font-stretch: 118%;
+            font-weight: 750;
+            font-size: 1.25rem;
+            letter-spacing: .06em;
+            color: var(--ink)
+        }
+
+        .logo small {
+            display: block;
+            font-family: var(--mono);
+            font-size: .52rem;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-top: .1rem
+        }
+
+        nav.main {
+            display: flex;
+            gap: 2rem
+        }
+
+        nav.main a {
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            position: relative;
+            padding: .4rem 0;
+            transition: color .3s
+        }
+
+        nav.main a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 2px;
+            background: var(--red);
+            transition: width .35s var(--ease)
+        }
+
+        nav.main a:hover {
+            color: var(--ink)
+        }
+
+        nav.main a:hover::after {
+            width: 100%
+        }
+
+        .h-right {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem
+        }
+
+        .h-phone {
+            font-family: var(--mono);
+            font-size: .68rem;
+            letter-spacing: .08em;
+            color: var(--ink-soft);
+            white-space: nowrap
+        }
+
+        .h-book {
+            padding: .85em 1.4em;
+            font-size: .64rem
+        }
+
+        #menu-btn {
+            display: none;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .24em;
+            text-transform: uppercase;
+            color: var(--ink);
+            padding: .4rem 0
+        }
+
+        #mobile-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 290;
+            background: var(--paper-2);
+            box-shadow: 0 20px 40px rgba(34, 48, 62, .15);
+            padding: 5.2rem var(--pad) 2.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: .2rem;
+            transform: translateY(-102%);
+            transition: transform .5s var(--ease);
+        }
+
+        #mobile-nav.open {
+            transform: none
+        }
+
+        #mobile-nav a {
+            font-family: var(--disp);
+            font-stretch: 112%;
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: var(--ink);
+            padding: .55rem 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+        #mobile-nav .btn {
+            margin-top: 1.2rem;
+            justify-content: center
+        }
+
+        /* ============================================================
+   HERO
+============================================================ */
+        .hero {
+            min-height: 100svh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 7rem;
+            overflow: hidden
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: clamp(2rem, 5vw, 5rem);
+            align-items: end;
+            margin-bottom: clamp(2.5rem, 5vh, 4rem)
+        }
+
+        .hero h1 {
+            font-size: clamp(3.2rem, 8.6vw, 7.6rem);
+            line-height: .98;
+            letter-spacing: -.025em
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            font-weight: 560;
+            color: var(--red)
+        }
+
+        .hero-side {
+            display: flex;
+            flex-direction: column;
+            gap: 1.6rem;
+            padding-bottom: .4rem
+        }
+
+        .hero-side .lede {
+            max-width: 42ch
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: .9rem;
+            flex-wrap: wrap
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 1.1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: clamp(1.8rem, 4vh, 3rem)
+        }
+
+        .hero-meta .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--red)
+        }
+
+        /* vitals monitor strip */
+        .vitals {
+            border-block: 1px solid var(--ink);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            background: var(--cream);
+        }
+
+        .v {
+            padding: 1.1rem clamp(.9rem, 2vw, 2rem);
+            border-left: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: .25rem
+        }
+
+        .v:first-child {
+            border-left: 0
+        }
+
+        .v-l {
+            font-family: var(--mono);
+            font-size: .58rem;
+            letter-spacing: .26em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        .v-n {
+            font-family: var(--mono);
+            font-size: clamp(1.15rem, 2vw, 1.7rem);
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: .6rem
+        }
+
+        .v-n small {
+            font-size: .62rem;
+            letter-spacing: .12em;
+            color: var(--ink-soft)
+        }
+
+        .beat {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--red);
+            flex: none;
+            animation: beat 1s infinite
+        }
+
+        @keyframes beat {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            12% {
+                transform: scale(1.45)
+            }
+
+            24% {
+                transform: scale(1)
+            }
+
+            36% {
+                transform: scale(1.2)
+            }
+
+            48% {
+                transform: scale(1)
+            }
+        }
+
+        .v-note {
+            display: flex;
+            align-items: center;
+            padding: 0 clamp(1rem, 2vw, 2rem);
+            font-family: var(--hand);
+            font-size: 1.25rem;
+            color: var(--red-deep);
+            border-left: 1px solid var(--line);
+        }
+
+        /* ECG sweep */
+        .ecg {
+            background: var(--cream);
+            border-bottom: 1px solid var(--ink);
+            line-height: 0
+        }
+
+        .ecg svg {
+            width: 100%;
+            height: clamp(70px, 10vw, 120px);
+            display: block
+        }
+
+        .ecg path {
+            fill: none;
+            stroke: var(--red);
+            stroke-width: 2.4;
+            vector-effect: non-scaling-stroke
+        }
+
+        .ecg-base {
+            opacity: .16
+        }
+
+        .ecg-sweep {
+            stroke-dasharray: 120 380;
+            animation: sweep 5s linear infinite
+        }
+
+        @keyframes sweep {
+            from {
+                stroke-dashoffset: 0
+            }
+
+            to {
+                stroke-dashoffset: -1000
+            }
+        }
+
+        /* ============================================================
+   TICKER
+============================================================ */
+        .ticker {
+            background: var(--ink);
+            color: var(--paper-2);
+            overflow: hidden;
+            padding: .85rem 0;
+            border-bottom: 1px solid var(--ink)
+        }
+
+        .ticker-track {
+            display: flex;
+            width: max-content;
+            animation: tick 40s linear infinite
+        }
+
+        .ticker-group {
+            display: flex;
+            align-items: center;
+            gap: 2.4rem;
+            padding-right: 2.4rem;
+            white-space: nowrap;
+            font-family: var(--mono);
+            font-size: .7rem;
+            letter-spacing: .24em;
+            text-transform: uppercase
+        }
+
+        .ticker-group b {
+            color: var(--red);
+            font-weight: 400
+        }
+
+        @keyframes tick {
+            to {
+                transform: translateX(-50%)
+            }
+        }
+
+        /* ============================================================
+   PRACTICE + STATS
+============================================================ */
+        .practice {
+            padding-block: clamp(5.5rem, 11vw, 10rem)
+        }
+
+        .pra-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: clamp(2.5rem, 6vw, 6rem);
+            align-items: start
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid var(--ink)
+        }
+
+        .stat {
+            padding: 1.4rem 1.2rem;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: .3rem
+        }
+
+        .stat:nth-child(odd) {
+            border-right: 1px solid var(--line)
+        }
+
+        .stat b {
+            font-family: var(--disp);
+            font-stretch: 114%;
+            font-weight: 680;
+            font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+            line-height: 1;
+            color: var(--ink)
+        }
+
+        .stat b i {
+            font-style: normal;
+            color: var(--red)
+        }
+
+        .stat span {
+            font-family: var(--mono);
+            font-size: .58rem;
+            letter-spacing: .24em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        /* ============================================================
+   VISIT STEPS
+============================================================ */
+        .visit {
+            padding-block: clamp(5rem, 10vw, 9rem);
+            background: var(--paper-2);
+            border-block: 1px solid var(--line)
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: clamp(1.2rem, 2vw, 2rem)
+        }
+
+        .step {
+            border-top: 2px solid var(--ink);
+            padding-top: 1.2rem;
+            position: relative
+        }
+
+        .step::before {
+            /* checkbox that ticks itself */
+            content: "";
+            position: absolute;
+            top: -8px;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            border: 2px solid var(--ink);
+            background: var(--paper-2);
+            transition: background .4s .5s, border-color .4s .5s;
+        }
+
+        .step.in::before {
+            background: var(--red);
+            border-color: var(--red-deep)
+        }
+
+        .step.in::after {
+            content: "✓";
+            position: absolute;
+            top: -9px;
+            right: 2.5px;
+            color: var(--cream);
+            font-size: .7rem;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity .3s .7s
+        }
+
+        .step.in::after {
+            opacity: 1
+        }
+
+        .step-no {
+            font-family: var(--mono);
+            font-size: .66rem;
+            letter-spacing: .28em;
+            color: var(--red)
+        }
+
+        .step h3 {
+            font-size: 1.35rem;
+            margin: .5rem 0 .5rem
+        }
+
+        .step p {
+            font-size: .92rem;
+            color: var(--ink-soft);
+            line-height: 1.75;
+            max-width: 32ch
+        }
+
+        /* ============================================================
+   CARE MENU
+============================================================ */
+        .menu-sec {
+            padding-block: clamp(5rem, 10vw, 9rem)
+        }
+
+        .menu-note {
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem
+        }
+
+        .chip {
+            font-family: var(--mono);
+            font-size: .6rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            border: 1px solid var(--line);
+            border-radius: 99px;
+            padding: .5em 1em;
+            color: var(--ink-soft);
+            background: var(--cream)
+        }
+
+        .chip b {
+            color: var(--green);
+            font-weight: 400
+        }
+
+        .menu-item {
+            border-bottom: 1px solid var(--line)
+        }
+
+        .menu-item:first-of-type {
+            border-top: 1px solid var(--ink)
+        }
+
+        .menu-row {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 3.2rem 1fr auto 2.4rem;
+            align-items: center;
+            gap: 1.3rem;
+            padding: 1.25rem .4rem;
+            text-align: left;
+            transition: background .3s;
+            border-radius: 4px;
+        }
+
+        .menu-row:hover {
+            background: rgba(214, 69, 56, .05)
+        }
+
+        .m-no {
+            font-family: var(--mono);
+            font-size: .72rem;
+            letter-spacing: .2em;
+            color: var(--red)
+        }
+
+        .m-name b {
+            display: block;
+            font-family: var(--disp);
+            font-stretch: 112%;
+            font-weight: 640;
+            font-size: clamp(1.2rem, 2vw, 1.6rem);
+            letter-spacing: -.01em;
+            color: var(--ink)
+        }
+
+        .m-name i {
+            display: block;
+            font-style: normal;
+            font-size: .82rem;
+            color: var(--ink-soft);
+            margin-top: .15rem
+        }
+
+        .m-price {
+            font-family: var(--mono);
+            font-size: clamp(1rem, 1.6vw, 1.3rem);
+            color: var(--ink);
+            white-space: nowrap
+        }
+
+        .m-price small {
+            display: block;
+            font-size: .56rem;
+            letter-spacing: .22em;
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            text-align: right
+        }
+
+        .mx {
+            justify-self: center;
+            width: 2rem;
+            height: 2rem;
+            border: 1px solid var(--ink-faint);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--red);
+            font-size: 1.05rem;
+            transition: transform .45s var(--ease), background .3s
+        }
+
+        .menu-item.open .mx {
+            transform: rotate(45deg);
+            background: var(--red);
+            border-color: var(--red);
+            color: var(--cream)
+        }
+
+        .menu-detail {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows .5s var(--ease)
+        }
+
+        .menu-item.open .menu-detail {
+            grid-template-rows: 1fr
+        }
+
+        .md-in {
+            overflow: hidden
+        }
+
+        .md-body {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+            padding: .3rem .4rem 1.5rem
+        }
+
+        .md-body ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem
+        }
+
+        .md-body li {
+            font-size: .78rem;
+            color: var(--ink-soft);
+            background: var(--cream);
+            border: 1px solid var(--line);
+            border-radius: 99px;
+            padding: .45em 1em
+        }
+
+        .md-book {
+            font-family: var(--mono);
+            font-size: .64rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--red-deep);
+            border-bottom: 2px solid var(--red);
+            padding-bottom: .3em;
+            white-space: nowrap
+        }
+
+        .md-book:hover {
+            color: var(--red)
+        }
+
+        /* ============================================================
+   DOCTORS
+============================================================ */
+        .docs {
+            padding-block: clamp(5rem, 10vw, 9rem);
+            background: var(--paper-2);
+            border-block: 1px solid var(--line)
+        }
+
+        .d-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(1.4rem, 2.5vw, 2.4rem)
+        }
+
+        .d-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem
+        }
+
+        .d-tile {
+            aspect-ratio: 4/3.4;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            padding: 1.4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 5s var(--ease);
+            box-shadow: 0 18px 40px -22px rgba(34, 48, 62, .5);
+        }
+
+        .d-card:hover .d-tile {
+            transform: scale(1.03)
+        }
+
+        .dt-navy {
+            background: linear-gradient(160deg, #2A3947, #1C2937)
+        }
+
+        .dt-red {
+            background: linear-gradient(160deg, #C74B3D, #A02E23)
+        }
+
+        .dt-green {
+            background: linear-gradient(160deg, #356E5B, #24493C)
+        }
+
+        .d-mono {
+            font-family: var(--disp);
+            font-stretch: 120%;
+            font-weight: 800;
+            font-size: clamp(3.4rem, 5vw, 4.6rem);
+            line-height: 1;
+            color: rgba(252, 250, 243, .92)
+        }
+
+        .d-ecg {
+            position: absolute;
+            right: 1rem;
+            bottom: 4.6rem;
+            width: 44%;
+            opacity: .3
+        }
+
+        .d-ecg path {
+            stroke: var(--cream);
+            stroke-width: 2;
+            fill: none
+        }
+
+        .d-tile h3 {
+            color: var(--cream);
+            font-size: 1.45rem;
+            font-weight: 640
+        }
+
+        .d-tile span {
+            display: block;
+            font-family: var(--mono);
+            font-size: .6rem;
+            letter-spacing: .24em;
+            text-transform: uppercase;
+            color: rgba(252, 250, 243, .65);
+            margin-top: .25rem
+        }
+
+        .d-note {
+            font-family: var(--hand);
+            font-size: 1.4rem;
+            line-height: 1.35;
+            color: var(--ink-soft);
+            background: var(--cream);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 1rem 1.1rem .9rem;
+            background-image: repeating-linear-gradient(to bottom, transparent 0 2.15rem, rgba(34, 48, 62, .12) 2.15rem 2.16rem);
+            transition: color .4s, box-shadow .4s;
+        }
+
+        .d-card:hover .d-note {
+            color: var(--red-deep);
+            box-shadow: 0 10px 24px -14px rgba(34, 48, 62, .4)
+        }
+
+        .d-book {
+            font-family: var(--mono);
+            font-size: .62rem;
+            letter-spacing: .24em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            transition: color .3s;
+            align-self: flex-start;
+            border-bottom: 1px solid transparent;
+            padding-bottom: .2em
+        }
+
+        .d-book:hover {
+            color: var(--red-deep);
+            border-bottom-color: var(--red)
+        }
+
+        /* ============================================================
+   CHART NOTES (testimonials)
+============================================================ */
+        .notes {
+            padding-block: clamp(5rem, 10vw, 9rem)
+        }
+
+        .n-stack {
+            display: grid;
+            max-width: 880px;
+            margin-inline: auto;
+            min-height: 11rem
+        }
+
+        .n-slide {
+            grid-area: 1/1;
+            opacity: 0;
+            translate: 0 14px;
+            transition: opacity .8s ease, translate .8s ease;
+            visibility: hidden
+        }
+
+        .n-slide.on {
+            opacity: 1;
+            translate: 0 0;
+            visibility: visible
+        }
+
+        .n-card {
+            background: var(--cream);
+            border: 1px solid var(--line);
+            border-top: 3px solid var(--red);
+            border-radius: 4px;
+            padding: clamp(1.6rem, 3vw, 2.4rem);
+            box-shadow: 0 16px 36px -22px rgba(34, 48, 62, .4);
+        }
+
+        .n-card p {
+            font-family: var(--disp);
+            font-stretch: 108%;
+            font-weight: 520;
+            font-size: clamp(1.25rem, 2.6vw, 1.9rem);
+            line-height: 1.45;
+            color: var(--ink)
+        }
+
+        .n-card footer {
+            margin-top: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-family: var(--mono);
+            font-size: .62rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        .n-card footer b {
+            color: var(--red-deep);
+            font-weight: 400
+        }
+
+        /* ============================================================
+   PLATES
+============================================================ */
+        .plates-sec {
+            padding-block: clamp(5rem, 10vw, 9rem);
+            background: var(--paper-2);
+            border-block: 1px solid var(--line)
+        }
+
+        .kit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 2rem;
+            margin-bottom: clamp(2.4rem, 6vw, 4rem);
+            flex-wrap: wrap
+        }
+
+        .kit-copy {
+            max-width: 54ch;
+            color: var(--ink-soft);
+            line-height: 1.8;
+            margin-top: 1rem
+        }
+
+        .kit-copy b {
+            color: var(--red-deep);
+            font-weight: 700
+        }
+
+        .plate-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1.6rem, 3vw, 2.8rem)
+        }
+
+        .plate-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: .9rem
+        }
+
+        .plate {
+            position: relative;
+            aspect-ratio: 4/3;
+            container-type: inline-size;
+            overflow: hidden;
+            border-radius: 6px;
+            box-shadow: 0 2rem 4.5rem -1.5rem rgba(34, 48, 62, .45), inset 0 0 0 1px rgba(34, 48, 62, .1);
+        }
+
+        .pl-1,
+        .pl-2 {
+            background: #F1E9D8
+        }
+
+        .pl-3 {
+            background: #EAD9BC
+        }
+
+        .pl-4 {
+            background: #1E2B38
+        }
+
+        .pl-1,
+        .pl-2,
+        .pl-3 {
+            background-image:
+                linear-gradient(rgba(214, 69, 56, .15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(214, 69, 56, .15) 1px, transparent 1px),
+                linear-gradient(rgba(214, 69, 56, .08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(214, 69, 56, .08) 1px, transparent 1px);
+            background-size: 25cqw 25cqw, 25cqw 25cqw, 6.25cqw 6.25cqw, 6.25cqw 6.25cqw;
+        }
+
+        .pl-4 {
+            background-image:
+                linear-gradient(rgba(252, 250, 243, .07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(252, 250, 243, .07) 1px, transparent 1px);
+            background-size: 6.25cqw 6.25cqw;
+        }
+
+        .plate::after {
+            /* studio light */
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            pointer-events: none;
+            background: radial-gradient(120% 95% at 20% 6%, rgba(255, 255, 255, .2), transparent 55%),
+                radial-gradient(150% 120% at 88% 108%, rgba(34, 48, 62, .16), transparent 60%);
+        }
+
+        .plate-cap {
+            font-family: var(--mono);
+            font-size: .6rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        .plate-cap b {
+            color: var(--red-deep);
+            font-weight: 400
+        }
+
+        .moc {
+            position: absolute;
+            box-shadow: 0 1.6cqw 3.2cqw rgba(28, 41, 55, .28)
+        }
+
+        .mx-lbl {
+            font-family: var(--mono);
+            text-transform: uppercase
+        }
+
+        /* PLATE 1 · front of house */
+        .p1-sign {
+            left: 6cqw;
+            top: 8cqw;
+            width: 46cqw;
+            height: 24cqw;
+            background: var(--ink);
+            border-radius: .6cqw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5cqw
+        }
+
+        .p1-sign::before {
+            content: "";
+            position: absolute;
+            inset: 1.4cqw;
+            border: .25cqw solid rgba(252, 250, 243, .2);
+            border-radius: .3cqw
+        }
+
+        .p1-sign .plus {
+            width: 4cqw;
+            height: 4cqw;
+            position: relative;
+            flex: none
+        }
+
+        .p1-sign .plus::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(var(--cream), var(--cream)) center/100% .5cqw no-repeat,
+                linear-gradient(var(--cream), var(--cream)) center/.5cqw 100% no-repeat;
+            border-radius: .2cqw
+        }
+
+        .p1-sign .plus::after {
+            content: "";
+            position: absolute;
+            left: -1cqw;
+            right: -1cqw;
+            top: 47%;
+            height: .4cqw;
+            background: linear-gradient(90deg, transparent 0 12%, var(--red) 12% 30%, transparent 30% 38%, var(--red) 38% 62%, transparent 62% 70%, var(--red) 70% 88%, transparent 88%)
+        }
+
+        .p1-sign .word {
+            font-family: var(--disp);
+            font-stretch: 120%;
+            font-weight: 800;
+            color: var(--cream);
+            font-size: 5cqw;
+            letter-spacing: .3em;
+            text-indent: .3em;
+            line-height: 1
+        }
+
+        .p1-sign .sub {
+            font-family: var(--mono);
+            font-size: 1.15cqw;
+            letter-spacing: .3em;
+            text-indent: .3em;
+            color: rgba(252, 250, 243, .65)
+        }
+
+        .p1-way {
+            left: 60cqw;
+            top: 8cqw;
+            width: 26cqw;
+            height: 22cqw;
+            background: var(--ink);
+            border-radius: .6cqw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 2.4cqw;
+            gap: 1.4cqw
+        }
+
+        .p1-way span {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--mono);
+            font-size: 1.35cqw;
+            letter-spacing: .22em;
+            color: var(--cream)
+        }
+
+        .p1-way span i {
+            font-style: normal;
+            color: var(--red);
+            font-size: 1.7cqw
+        }
+
+        .p1-way .wdiv {
+            height: 1px;
+            background: rgba(252, 250, 243, .25)
+        }
+
+        .p1-room {
+            left: 62cqw;
+            top: 38cqw;
+            width: 20cqw;
+            height: 10cqw;
+            background: var(--cream);
+            border: .3cqw solid var(--ink);
+            border-radius: .5cqw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.6cqw;
+            box-shadow: 0 .6cqw 1.4cqw rgba(28, 41, 55, .2)
+        }
+
+        .p1-room small {
+            font-family: var(--mono);
+            font-size: 1.05cqw;
+            letter-spacing: .26em;
+            color: var(--ink-soft)
+        }
+
+        .p1-room b {
+            font-family: var(--disp);
+            font-stretch: 120%;
+            font-weight: 800;
+            font-size: 4.6cqw;
+            color: var(--red);
+            line-height: 1
+        }
+
+        .p1-card {
+            left: 8cqw;
+            top: 42cqw;
+            width: 26cqw;
+            height: 16cqw;
+            background: var(--cream);
+            border-radius: .5cqw;
+            rotate: -2deg;
+            padding: 2cqw;
+            display: flex;
+            flex-direction: column;
+            gap: .8cqw
+        }
+
+        .p1-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 1.8cqw;
+            background: var(--red);
+            border-radius: .5cqw .5cqw 0 0
+        }
+
+        .p1-card .c1 {
+            font-family: var(--mono);
+            font-size: .95cqw;
+            letter-spacing: .26em;
+            color: var(--red-deep);
+            margin-top: .6cqw
+        }
+
+        .p1-card .c2 {
+            font-family: var(--disp);
+            font-weight: 700;
+            font-size: 1.8cqw;
+            color: var(--ink);
+            letter-spacing: .02em
+        }
+
+        .p1-card .c3 {
+            font-family: var(--mono);
+            font-size: 1.05cqw;
+            color: var(--ink-soft)
+        }
+
+        .p1-knock {
+            left: 84cqw;
+            top: 44cqw;
+            width: 11cqw;
+            height: 11cqw;
+            background: var(--cream);
+            rotate: 4deg;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-family: var(--mono);
+            font-size: .95cqw;
+            letter-spacing: .2em;
+            line-height: 1.9;
+            color: var(--red-deep);
+            box-shadow: 0 .6cqw 1.6cqw rgba(28, 41, 55, .18)
+        }
+
+        .p1-pen {
+            left: 42cqw;
+            top: 58cqw;
+            width: 20cqw;
+            height: 1.6cqw;
+            background: var(--ink);
+            border-radius: .8cqw;
+            rotate: -14deg
+        }
+
+        .p1-pen::before {
+            content: "";
+            position: absolute;
+            right: -2.4cqw;
+            top: 0;
+            width: 2.4cqw;
+            height: 1.6cqw;
+            background: #C9A86A;
+            clip-path: polygon(0 0, 100% 50%, 0 100%)
+        }
+
+        .p1-pen::after {
+            content: "";
+            position: absolute;
+            left: 2cqw;
+            top: .45cqw;
+            width: 8cqw;
+            height: .7cqw;
+            background: rgba(252, 250, 243, .25);
+            border-radius: 1cqw
+        }
+
+        /* PLATE 2 · paperwork */
+        .p2-folder {
+            left: 6cqw;
+            top: 10cqw;
+            width: 44cqw;
+            height: 38cqw;
+            background: var(--ink);
+            border-radius: .7cqw;
+            padding: 3cqw;
+            display: flex;
+            flex-direction: column
+        }
+
+        .p2-folder .ftab {
+            position: absolute;
+            left: 3cqw;
+            top: -4.6cqw;
+            background: var(--red);
+            color: var(--cream);
+            font-family: var(--mono);
+            font-size: 1.1cqw;
+            letter-spacing: .24em;
+            padding: .7em 1.6em .9em;
+            border-radius: .5cqw .5cqw 0 0
+        }
+
+        .p2-folder .fprint {
+            font-family: var(--mono);
+            font-size: 1cqw;
+            letter-spacing: .3em;
+            color: rgba(252, 250, 243, .55);
+            margin-top: auto
+        }
+
+        .p2-label {
+            width: 24cqw;
+            background: var(--cream);
+            border-radius: .4cqw;
+            padding: 1.6cqw;
+            margin-top: 2cqw
+        }
+
+        .p2-label .l1 {
+            font-family: var(--mono);
+            font-size: .95cqw;
+            letter-spacing: .22em;
+            color: var(--red-deep)
+        }
+
+        .p2-label .l2 {
+            font-family: var(--disp);
+            font-weight: 700;
+            font-size: 2cqw;
+            color: var(--ink);
+            margin: .5cqw 0 .9cqw
+        }
+
+        .p2-label .l3 {
+            height: .7cqw;
+            background: rgba(34, 48, 62, .18);
+            border-radius: 1cqw;
+            margin-top: .8cqw
+        }
+
+        .p2-label .l3:first-of-type {
+            width: 80%
+        }
+
+        .p2-pad {
+            left: 58cqw;
+            top: 8cqw;
+            width: 34cqw;
+            height: 28cqw;
+            background: #FDFBF3;
+            border-radius: .5cqw;
+            rotate: .8deg;
+            padding: 2.4cqw;
+            display: flex;
+            flex-direction: column
+        }
+
+        .p2-pad .ph {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: .3cqw solid var(--ink);
+            padding-bottom: 1.2cqw
+        }
+
+        .p2-pad .ph b {
+            font-family: var(--mono);
+            font-size: .95cqw;
+            letter-spacing: .2em;
+            color: var(--ink)
+        }
+
+        .p2-pad .ph .rx {
+            font-family: var(--disp);
+            font-style: italic;
+            font-weight: 800;
+            font-size: 3.4cqw;
+            color: var(--red);
+            line-height: .9
+        }
+
+        .p2-pad .pline {
+            height: .55cqw;
+            background: rgba(34, 48, 62, .16);
+            border-radius: 1cqw;
+            margin-top: 1.8cqw
+        }
+
+        .p2-pad .pline:nth-of-type(2) {
+            width: 92%
+        }
+
+        .p2-pad .pline:nth-of-type(3) {
+            width: 100%
+        }
+
+        .p2-pad .pline:nth-of-type(4) {
+            width: 84%
+        }
+
+        .p2-pad .psig {
+            margin-top: auto;
+            align-self: flex-end;
+            text-align: right
+        }
+
+        .p2-pad .psig i {
+            display: block;
+            font-family: var(--hand);
+            font-style: normal;
+            font-size: 2.6cqw;
+            color: var(--ink);
+            line-height: 1;
+            rotate: -3deg
+        }
+
+        .p2-pad .psig span {
+            font-family: var(--mono);
+            font-size: .8cqw;
+            letter-spacing: .16em;
+            color: var(--ink-soft)
+        }
+
+        .p2-letter {
+            left: 8cqw;
+            top: 54cqw;
+            width: 30cqw;
+            height: 17cqw;
+            background: #FDFBF3;
+            border-radius: .4cqw;
+            rotate: -1.4deg;
+            padding: 1.8cqw;
+            display: flex;
+            flex-direction: column
+        }
+
+        .p2-letter .lh {
+            display: flex;
+            align-items: center;
+            gap: 1cqw;
+            border-bottom: .25cqw solid rgba(34, 48, 62, .4);
+            padding-bottom: 1cqw;
+            margin-bottom: 1.4cqw
+        }
+
+        .p2-letter .lh i {
+            width: 2cqw;
+            height: 2cqw;
+            background:
+                linear-gradient(var(--red), var(--red)) center/100% .35cqw no-repeat,
+                linear-gradient(var(--red), var(--red)) center/.35cqw 100% no-repeat
+        }
+
+        .p2-letter .lh b {
+            font-family: var(--mono);
+            font-size: .95cqw;
+            letter-spacing: .24em;
+            color: var(--ink)
+        }
+
+        .p2-letter .ln {
+            height: .55cqw;
+            background: rgba(34, 48, 62, .14);
+            border-radius: 1cqw;
+            margin-bottom: 1cqw
+        }
+
+        .p2-letter .ln:nth-of-type(2) {
+            width: 94%
+        }
+
+        .p2-letter .ln:nth-of-type(3) {
+            width: 100%
+        }
+
+        .p2-letter .ln:nth-of-type(4) {
+            width: 64%
+        }
+
+        .p2-letter .lf {
+            margin-top: auto;
+            font-family: var(--mono);
+            font-size: .8cqw;
+            letter-spacing: .18em;
+            color: var(--ink-soft)
+        }
+
+        .p2-bc {
+            left: 44cqw;
+            top: 58cqw;
+            width: 21cqw;
+            height: 11.5cqw;
+            background: var(--ink);
+            border-radius: .5cqw;
+            rotate: 2.4deg;
+            padding: 1.5cqw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between
+        }
+
+        .p2-bc i {
+            width: 2.2cqw;
+            height: 2.2cqw;
+            background:
+                linear-gradient(var(--red), var(--red)) center/100% .4cqw no-repeat,
+                linear-gradient(var(--cream), var(--cream)) center/.4cqw 100% no-repeat
+        }
+
+        .p2-bc b {
+            font-family: var(--mono);
+            font-size: 1.15cqw;
+            letter-spacing: .18em;
+            color: var(--cream)
+        }
+
+        .p2-bc span {
+            font-family: var(--mono);
+            font-size: .8cqw;
+            letter-spacing: .2em;
+            color: var(--red)
+        }
+
+        /* PLATE 3 · pharmacy shelf */
+        .p3-bottle {
+            left: 10cqw;
+            top: 22cqw;
+            width: 13cqw;
+            height: 27cqw;
+            background: linear-gradient(90deg, #C87A2E, #9C5518 55%, #7C4210);
+            border-radius: 1.2cqw 1.2cqw 1.6cqw 1.6cqw
+        }
+
+        .p3-bottle::before {
+            content: "";
+            position: absolute;
+            left: 1cqw;
+            right: 1cqw;
+            top: -4cqw;
+            height: 4.4cqw;
+            background: linear-gradient(90deg, #F4F0E4, #DDD7C6);
+            border-radius: .8cqw .8cqw .2cqw .2cqw
+        }
+
+        .p3-bottle::after {
+            content: "";
+            position: absolute;
+            left: 1.6cqw;
+            top: 1cqw;
+            bottom: 1cqw;
+            width: 1.6cqw;
+            background: rgba(255, 255, 255, .28);
+            border-radius: 1cqw
+        }
+
+        .p3-blabel {
+            position: absolute;
+            left: 1cqw;
+            right: 1cqw;
+            top: 6cqw;
+            height: 17cqw;
+            background: var(--cream);
+            border-radius: .3cqw;
+            padding: 1.1cqw 1.2cqw;
+            display: flex;
+            flex-direction: column;
+            gap: .55cqw;
+            box-shadow: inset 0 0 0 .15cqw rgba(214, 69, 56, .5)
+        }
+
+        .p3-blabel i {
+            font-style: normal;
+            font-family: var(--mono);
+            font-size: .8cqw;
+            letter-spacing: .2em;
+            color: var(--red-deep)
+        }
+
+        .p3-blabel b {
+            font-family: var(--disp);
+            font-weight: 700;
+            font-size: 1.5cqw;
+            color: var(--ink);
+            line-height: 1.1
+        }
+
+        .p3-blabel span {
+            font-style: normal;
+            font-family: var(--mono);
+            font-size: .78cqw;
+            color: var(--ink-soft)
+        }
+
+        .p3-blabel .brule {
+            height: .35cqw;
+            background: rgba(214, 69, 56, .5);
+            margin: .3cqw 0
+        }
+
+        .p3-blister {
+            left: 31cqw;
+            top: 30cqw;
+            width: 25cqw;
+            height: 19cqw;
+            background: var(--cream);
+            border-radius: .8cqw;
+            rotate: -3deg;
+            padding: 1.6cqw
+        }
+
+        .p3-blister .bhead {
+            font-family: var(--mono);
+            font-size: .85cqw;
+            letter-spacing: .22em;
+            color: var(--ink-soft);
+            margin-bottom: 1cqw
+        }
+
+        .p3-blister .bpills {
+            height: 12.6cqw;
+            border: .3cqw solid rgba(34, 48, 62, .15);
+            border-radius: .5cqw;
+            background-image: radial-gradient(circle at 35% 32%, #E2604A 0 1.5cqw, #B23428 1.6cqw 1.85cqw, transparent 1.95cqw);
+            background-size: 4.2cqw 4.2cqw;
+            background-position: 1cqw 1cqw
+        }
+
+        .p3-oint {
+            left: 62cqw;
+            top: 24cqw;
+            width: 12cqw;
+            height: 8cqw;
+            background: var(--ink);
+            border-radius: .5cqw;
+            rotate: 2deg;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1cqw
+        }
+
+        .p3-oint i {
+            width: 1.6cqw;
+            height: 1.6cqw;
+            background:
+                linear-gradient(var(--cream), var(--cream)) center/100% .4cqw no-repeat,
+                linear-gradient(var(--cream), var(--cream)) center/.4cqw 100% no-repeat
+        }
+
+        .p3-oint span {
+            font-family: var(--mono);
+            font-size: 1cqw;
+            letter-spacing: .22em;
+            color: var(--cream)
+        }
+
+        .p3-card {
+            left: 58cqw;
+            top: 40cqw;
+            width: 27cqw;
+            height: 15cqw;
+            background: var(--ink);
+            border-radius: .9cqw;
+            rotate: -2deg;
+            padding: 1.6cqw 2cqw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between
+        }
+
+        .p3-card .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline
+        }
+
+        .p3-card .row b {
+            font-family: var(--disp);
+            font-stretch: 118%;
+            font-weight: 800;
+            font-size: 1.9cqw;
+            letter-spacing: .16em;
+            color: var(--cream)
+        }
+
+        .p3-card .row span {
+            font-family: var(--mono);
+            font-size: .85cqw;
+            letter-spacing: .22em;
+            color: var(--red)
+        }
+
+        .p3-card svg {
+            width: 58%;
+            height: 2.2cqw
+        }
+
+        .p3-card path {
+            stroke: var(--red);
+            stroke-width: 2.4;
+            fill: none
+        }
+
+        .p3-card .who {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--mono);
+            font-size: .9cqw;
+            letter-spacing: .18em;
+            color: rgba(252, 250, 243, .75)
+        }
+
+        .p3-thermo {
+            left: 32cqw;
+            top: 56cqw;
+            width: 21cqw;
+            height: 1.6cqw;
+            background: var(--cream);
+            border-radius: 1cqw;
+            rotate: -5deg;
+            box-shadow: 0 .5cqw 1.2cqw rgba(28, 41, 55, .2)
+        }
+
+        .p3-thermo::before {
+            content: "";
+            position: absolute;
+            left: .3cqw;
+            top: .3cqw;
+            bottom: .3cqw;
+            width: 38%;
+            background: var(--red);
+            border-radius: 1cqw
+        }
+
+        .p3-thermo::after {
+            content: "";
+            position: absolute;
+            left: -2.6cqw;
+            top: 50%;
+            translate: 0 -50%;
+            width: 3.6cqw;
+            height: 3.6cqw;
+            border-radius: 50%;
+            background: var(--red);
+            box-shadow: inset -0.5cqw -0.5cqw 1cqw rgba(0, 0, 0, .2)
+        }
+
+        /* PLATE 4 · the patient app */
+        .p4-phone {
+            width: 25cqw;
+            height: 47cqw;
+            background: #141D26;
+            border: .7cqw solid #2C3B4B;
+            border-radius: 3.4cqw;
+            padding: 1.4cqw;
+            box-shadow: 0 2cqw 4.4cqw rgba(0, 0, 0, .5)
+        }
+
+        .p4-a {
+            left: 8cqw;
+            top: 8cqw;
+            rotate: -2deg
+        }
+
+        .p4-b {
+            left: 38cqw;
+            top: 14cqw;
+            rotate: 2deg
+        }
+
+        .p4-scr {
+            width: 100%;
+            height: 100%;
+            background: var(--cream);
+            border-radius: 2.3cqw;
+            padding: 2.2cqw 1.9cqw;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden
+        }
+
+        .p4-scr::before {
+            content: "";
+            position: absolute;
+            top: .8cqw;
+            left: 50%;
+            translate: -50% 0;
+            width: 7cqw;
+            height: 1.4cqw;
+            background: #141D26;
+            border-radius: 0 0 1cqw 1cqw
+        }
+
+        .p4-h {
+            font-family: var(--disp);
+            font-weight: 700;
+            font-size: 2.2cqw;
+            color: var(--ink);
+            margin-top: 2.6cqw
+        }
+
+        .p4-sub {
+            font-family: var(--mono);
+            font-size: .95cqw;
+            letter-spacing: .2em;
+            color: var(--red-deep);
+            margin: .4cqw 0 1.8cqw
+        }
+
+        .p4-res {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: .2cqw solid rgba(34, 48, 62, .12);
+            padding: 1.2cqw 0
+        }
+
+        .p4-res span {
+            font-size: 1.25cqw;
+            color: var(--ink)
+        }
+
+        .p4-res i {
+            font-style: normal;
+            font-family: var(--mono);
+            font-size: .8cqw;
+            letter-spacing: .14em;
+            color: var(--green);
+            background: rgba(46, 125, 100, .12);
+            border-radius: 99px;
+            padding: .45em 1.1em
+        }
+
+        .p4-btn {
+            margin-top: auto;
+            height: 4.6cqw;
+            border-radius: 99px;
+            background: var(--ink);
+            color: var(--cream);
+            font-family: var(--mono);
+            font-size: 1cqw;
+            letter-spacing: .2em;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .p4-msg {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2cqw;
+            margin-top: 1.6cqw
+        }
+
+        .p4-msg span {
+            max-width: 78%;
+            padding: 1.1cqw 1.4cqw;
+            border-radius: 1.6cqw;
+            font-size: 1.15cqw;
+            line-height: 1.45;
+            color: var(--ink);
+            background: var(--paper-2);
+            border: .2cqw solid rgba(34, 48, 62, .14)
+        }
+
+        .p4-msg .me {
+            align-self: flex-end;
+            background: var(--ink);
+            color: var(--cream);
+            border-color: var(--ink)
+        }
+
+        .p4-input {
+            margin-top: auto;
+            height: 4.2cqw;
+            border: .2cqw solid rgba(34, 48, 62, .25);
+            border-radius: 99px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.4cqw;
+            font-family: var(--mono);
+            font-size: .9cqw;
+            color: var(--ink-soft)
+        }
+
+        .p4-notif {
+            left: 68cqw;
+            top: 8cqw;
+            width: 27cqw;
+            height: 6.6cqw;
+            background: var(--cream);
+            border-radius: 3.3cqw;
+            display: flex;
+            align-items: center;
+            gap: 1.3cqw;
+            padding: 0 2cqw;
+            rotate: 2deg;
+            box-shadow: 0 1.4cqw 3cqw rgba(0, 0, 0, .4)
+        }
+
+        .p4-notif i {
+            width: 1.9cqw;
+            height: 1.9cqw;
+            border-radius: 50%;
+            background: var(--red);
+            flex: none
+        }
+
+        .p4-notif span {
+            font-family: var(--mono);
+            font-size: 1.02cqw;
+            letter-spacing: .06em;
+            color: var(--ink)
+        }
+
+        .p4-report {
+            left: 67cqw;
+            top: 20cqw;
+            width: 26cqw;
+            height: 34cqw;
+            background: var(--cream);
+            border-radius: .5cqw;
+            rotate: -2deg;
+            padding: 2.2cqw;
+            display: flex;
+            flex-direction: column
+        }
+
+        .p4-report .rk {
+            font-family: var(--mono);
+            font-size: .9cqw;
+            letter-spacing: .26em;
+            color: var(--red-deep)
+        }
+
+        .p4-report .rt {
+            font-family: var(--disp);
+            font-stretch: 116%;
+            font-weight: 800;
+            font-size: 3cqw;
+            line-height: 1.02;
+            color: var(--ink);
+            margin: .9cqw 0 1.2cqw
+        }
+
+        .p4-report .rr {
+            width: 5cqw;
+            height: .6cqw;
+            background: var(--red);
+            margin-bottom: 1.6cqw
+        }
+
+        .p4-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 1cqw;
+            height: 9cqw;
+            margin-top: auto
+        }
+
+        .p4-bars i {
+            flex: 1;
+            background: var(--ink);
+            border-radius: .3cqw .3cqw 0 0;
+            opacity: .85
+        }
+
+        .p4-bars i:nth-child(1) {
+            height: 35%
+        }
+
+        .p4-bars i:nth-child(2) {
+            height: 55%
+        }
+
+        .p4-bars i:nth-child(3) {
+            height: 45%
+        }
+
+        .p4-bars i:nth-child(4) {
+            height: 75%
+        }
+
+        .p4-bars i:nth-child(5) {
+            height: 60%
+        }
+
+        .p4-bars i:nth-child(6) {
+            height: 100%;
+            background: var(--red);
+            opacity: 1
+        }
+
+        .p4-report .rf {
+            font-family: var(--mono);
+            font-size: .85cqw;
+            letter-spacing: .18em;
+            color: var(--ink-soft);
+            margin-top: 1.2cqw
+        }
+
+        .p4-checkin {
+            left: 10cqw;
+            top: 60cqw;
+            width: 26cqw;
+            height: 11cqw;
+            background: var(--cream);
+            border-radius: .6cqw;
+            rotate: 1.6deg;
+            padding: 1.4cqw 1.7cqw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between
+        }
+
+        .p4-checkin .ck {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline
+        }
+
+        .p4-checkin .ck b {
+            font-family: var(--mono);
+            font-size: .95cqw;
+            letter-spacing: .24em;
+            color: var(--red-deep)
+        }
+
+        .p4-checkin .ck span {
+            font-family: var(--disp);
+            font-weight: 700;
+            font-size: 1.5cqw;
+            color: var(--ink)
+        }
+
+        .p4-checkin .barcode {
+            height: 2.6cqw;
+            background: repeating-linear-gradient(90deg, var(--ink) 0 .5cqw, transparent .5cqw 1.1cqw, var(--ink) 1.1cqw 1.4cqw, transparent 1.4cqw 2.2cqw)
+        }
+
+        /* ============================================================
+   HOURS
+============================================================ */
+        .hours {
+            padding-block: clamp(5rem, 10vw, 9rem)
+        }
+
+        .hrs-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: clamp(2.5rem, 6vw, 6rem);
+            align-items: start
+        }
+
+        .hrs-table {
+            border-top: 2px solid var(--ink)
+        }
+
+        .hrow {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            padding: 1rem .2rem;
+            border-bottom: 1px solid var(--line);
+            font-family: var(--mono);
+            font-size: .86rem
+        }
+
+        .hrow .day {
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--ink)
+        }
+
+        .hrow .lead {
+            flex: 1;
+            border-bottom: 2px dotted rgba(34, 48, 62, .3);
+            translate: 0 -4px
+        }
+
+        .hrow .time {
+            color: var(--ink-soft)
+        }
+
+        .hrow .time b {
+            color: var(--red-deep);
+            font-weight: 400
+        }
+
+        .loc-card {
+            background: var(--cream);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: clamp(1.6rem, 3vw, 2.4rem);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem
+        }
+
+        .loc-card h3 {
+            font-size: 1.4rem
+        }
+
+        .loc-card p {
+            font-size: .94rem;
+            color: var(--ink-soft);
+            line-height: 1.8
+        }
+
+        .loc-card .lab {
+            border-top: 1px dashed var(--line);
+            padding-top: 1rem;
+            font-family: var(--mono);
+            font-size: .66rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--green)
+        }
+
+        /* ============================================================
+   FAQ
+============================================================ */
+        .faq {
+            padding-block: clamp(5rem, 10vw, 9rem);
+            background: var(--paper-2);
+            border-block: 1px solid var(--line)
+        }
+
+        .faq-list {
+            max-width: 860px
+        }
+
+        .f-item {
+            border-bottom: 1px solid var(--line)
+        }
+
+        .f-item:first-of-type {
+            border-top: 2px solid var(--ink)
+        }
+
+        .f-q {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: left;
+            padding: 1.4rem .3rem
+        }
+
+        .f-q h3 {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            font-weight: 640
+        }
+
+        .f-q .fx {
+            flex: none;
+            width: 2rem;
+            height: 2rem;
+            border: 1px solid var(--ink-faint);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--red);
+            font-size: 1rem;
+            transition: transform .45s var(--ease), background .3s
+        }
+
+        .f-item.open .fx {
+            transform: rotate(45deg);
+            background: var(--red);
+            border-color: var(--red);
+            color: var(--cream)
+        }
+
+        .f-a {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows .5s var(--ease)
+        }
+
+        .f-item.open .f-a {
+            grid-template-rows: 1fr
+        }
+
+        .fa-in {
+            overflow: hidden
+        }
+
+        .f-a p {
+            padding: 0 .3rem 1.5rem;
+            color: var(--ink-soft);
+            line-height: 1.85;
+            max-width: 64ch
+        }
+
+        /* ============================================================
+   BOOK
+============================================================ */
+        .book {
+            padding-block: clamp(5rem, 10vw, 9rem)
+        }
+
+        .book-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: clamp(2.5rem, 6vw, 6rem);
+            align-items: start
+        }
+
+        .form-card {
+            background: var(--cream);
+            border: 1px solid var(--line);
+            border-top: 3px solid var(--red);
+            border-radius: 6px;
+            padding: clamp(1.6rem, 3vw, 2.6rem);
+            box-shadow: 0 24px 50px -30px rgba(34, 48, 62, .4)
+        }
+
+        .f-row {
+            margin-bottom: 1.4rem
+        }
+
+        .f-row label {
+            display: block;
+            font-family: var(--mono);
+            font-size: .6rem;
+            letter-spacing: .26em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: .55rem
+        }
+
+        .f-row input,
+        .f-row select,
+        .f-row textarea {
+            width: 100%;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: .85rem 1rem;
+            color: var(--ink);
+            font-family: var(--sans);
+            font-size: 1rem;
+            transition: border-color .3s;
+        }
+
+        .f-row textarea {
+            resize: vertical;
+            min-height: 4.5rem
+        }
+
+        .f-row input:focus,
+        .f-row select:focus,
+        .f-row textarea:focus {
+            outline: none;
+            border-color: var(--red)
+        }
+
+        .f-two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem
+        }
+
+        .pills {
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap
+        }
+
+        .pills input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none
+        }
+
+        .pills label {
+            display: inline-flex;
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: .66rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            border: 1px solid var(--ink-faint);
+            border-radius: 99px;
+            padding: .7em 1.4em;
+            color: var(--ink-soft);
+            transition: .3s;
+            margin: 0;
+        }
+
+        .pills input:checked+label {
+            background: var(--ink);
+            border-color: var(--ink);
+            color: var(--cream)
+        }
+
+        .pills input:focus-visible+label {
+            outline: 2px solid var(--red);
+            outline-offset: 2px
+        }
+
+        .form-card .btn {
+            width: 100%;
+            justify-content: center;
+            margin-top: .4rem
+        }
+
+        .f-small {
+            margin-top: 1rem;
+            font-family: var(--mono);
+            font-size: .62rem;
+            letter-spacing: .1em;
+            color: var(--ink-soft);
+            text-align: center
+        }
+
+        .book-done {
+            display: none;
+            text-align: center;
+            padding: 2.5rem 1rem
+        }
+
+        .book-done.show {
+            display: block
+        }
+
+        .bd-ring {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            border: 2px solid var(--red);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--red);
+            font-size: 2rem
+        }
+
+        .book-done h3 {
+            font-size: 1.8rem;
+            margin-bottom: .7rem
+        }
+
+        .book-done p {
+            color: var(--ink-soft);
+            max-width: 40ch;
+            margin-inline: auto;
+            line-height: 1.85
+        }
+
+        .book-done .ref {
+            display: inline-block;
+            margin-top: 1.2rem;
+            font-family: var(--mono);
+            font-size: .72rem;
+            letter-spacing: .24em;
+            color: var(--red-deep);
+            border: 1px dashed var(--red);
+            border-radius: 4px;
+            padding: .6em 1.2em
+        }
+
+        /* ============================================================
+   EMERGENCY + FOOTER
+============================================================ */
+        .emergency {
+            background: var(--red-deep);
+            color: var(--cream);
+            padding: 1.1rem var(--pad);
+            text-align: center;
+            font-size: .82rem;
+            letter-spacing: .04em
+        }
+
+        .emergency b {
+            font-weight: 700
+        }
+
+        footer {
+            background: var(--ink);
+            color: rgba(252, 250, 243, .72);
+            padding: 3.4rem var(--pad) 2rem
+        }
+
+        .f-grid {
+            max-width: 1280px;
+            margin-inline: auto;
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr;
+            gap: 2.5rem;
+            padding-bottom: 2.4rem;
+            border-bottom: 1px solid rgba(252, 250, 243, .16)
+        }
+
+        .f-grid p {
+            font-size: .88rem;
+            line-height: 1.9
+        }
+
+        .f-logo {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            margin-bottom: 1rem
+        }
+
+        .f-logo .mark {
+            width: 2.2rem;
+            height: 2.2rem
+        }
+
+        .f-logo b {
+            font-family: var(--disp);
+            font-stretch: 118%;
+            font-weight: 750;
+            font-size: 1.35rem;
+            letter-spacing: .06em;
+            color: var(--cream)
+        }
+
+        .f-col h4 {
+            font-family: var(--mono);
+            font-size: .6rem;
+            font-weight: 400;
+            letter-spacing: .28em;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 1rem
+        }
+
+        .f-col a,
+        .f-col span {
+            display: block;
+            padding: .3rem 0;
+            font-size: .88rem;
+            transition: color .3s
+        }
+
+        .f-col a:hover {
+            color: var(--red)
+        }
+
+        .f-bottom {
+            max-width: 1280px;
+            margin-inline: auto;
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            padding-top: 1.6rem;
+            font-family: var(--mono);
+            font-size: .58rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: rgba(252, 250, 243, .42)
+        }
+
+        .f-bottom a:hover {
+            color: var(--red)
+        }
+
+        /* ============================================================
+   MOCKUP KIT VIEWER
+============================================================ */
+        #kit-view {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            background: #F0E9DA;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .4s ease, visibility 0s linear .4s;
+        }
+
+        #kit-view.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity .4s ease
+        }
+
+        #kit-view.k-navy {
+            background: #1C2937
+        }
+
+        #kit-view.k-brick {
+            background: #A02E23
+        }
+
+        .k-top,
+        .k-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem clamp(1rem, 3vw, 2.4rem);
+            font-family: var(--mono);
+            font-size: .6rem;
+            letter-spacing: .26em;
+            text-transform: uppercase;
+            color: rgba(34, 48, 62, .6)
+        }
+
+        .k-top button,
+        .k-bottom button {
+            font-family: var(--mono);
+            font-size: .6rem;
+            letter-spacing: .26em;
+            text-transform: uppercase;
+            color: var(--ink);
+            padding: .6em 1em;
+            border: 1px solid rgba(34, 48, 62, .3);
+            border-radius: 4px;
+            transition: .3s;
+            white-space: nowrap
+        }
+
+        .k-top button:hover,
+        .k-bottom button:hover {
+            border-color: var(--red);
+            color: var(--red-deep)
+        }
+
+        #kit-view.k-navy .k-top,
+        #kit-view.k-navy .k-bottom,
+        #kit-view.k-brick .k-top,
+        #kit-view.k-brick .k-bottom {
+            color: rgba(252, 250, 243, .7)
+        }
+
+        #kit-view.k-navy .k-top button,
+        #kit-view.k-navy .k-bottom button,
+        #kit-view.k-brick .k-top button,
+        #kit-view.k-brick .k-bottom button {
+            color: var(--cream);
+            border-color: rgba(252, 250, 243, .4)
+        }
+
+        #kit-view.k-navy .k-top button:hover,
+        #kit-view.k-navy .k-bottom button:hover,
+        #kit-view.k-brick .k-top button:hover,
+        #kit-view.k-brick .k-bottom button:hover {
+            border-color: var(--cream);
+            color: var(--cream)
+        }
+
+        .k-stage {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 clamp(1rem, 3vw, 2.4rem)
+        }
+
+        .k-holder {
+            width: 100%;
+            display: flex;
+            justify-content: center
+        }
+
+        .k-holder .plate {
+            width: min(92vw, 88vh, 1150px);
+            height: auto;
+            flex: none;
+            aspect-ratio: 4/3;
+            box-shadow: 0 3rem 8rem rgba(20, 29, 38, .4)
+        }
+
+        .k-tip {
+            text-align: center;
+            padding: .8rem 1rem 1.2rem;
+            font-family: var(--mono);
+            font-size: .54rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: rgba(34, 48, 62, .42)
+        }
+
+        #kit-view.k-navy .k-tip,
+        #kit-view.k-brick .k-tip {
+            color: rgba(252, 250, 243, .5)
+        }
+
+        .k-hint {
+            display: none
+        }
+
+        @media (min-width:720px) {
+            .k-hint {
+                display: inline
+            }
+        }
+
+        /* ============================================================
+   RESPONSIVE
+============================================================ */
+        @media (max-width:1080px) {
+            .plate-grid {
+                grid-template-columns: 1fr
+            }
+
+            .steps {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
+        @media (max-width:979px) {
+
+            nav.main,
+            .h-book {
+                display: none
+            }
+
+            #menu-btn {
+                display: block
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr
+            }
+
+            .pra-grid,
+            .book-grid,
+            .hrs-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @media (max-width:719px) {
+            .h-phone {
+                display: none
+            }
+
+            .hero {
+                padding-top: 6rem
+            }
+
+            .vitals {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .v {
+                border-top: 1px solid var(--line)
+            }
+
+            .v:nth-child(-n+2) {
+                border-top: 0
+            }
+
+            .v:nth-child(odd) {
+                border-left: 0
+            }
+
+            .v-note {
+                grid-column: 1/-1;
+                border-top: 1px solid var(--line);
+                padding-block: .7rem;
+                justify-content: center
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .steps {
+                grid-template-columns: 1fr
+            }
+
+            .d-grid {
+                grid-template-columns: 1fr
+            }
+
+            .d-tile {
+                aspect-ratio: 16/10
+            }
+
+            .menu-row {
+                grid-template-columns: 2.2rem 1fr auto;
+                row-gap: .2rem
+            }
+
+            .mx {
+                display: none
+            }
+
+            .md-body {
+                grid-template-columns: 1fr
+            }
+
+            .f-two {
+                grid-template-columns: 1fr
+            }
+
+            .f-grid {
+                grid-template-columns: 1fr
+            }
+
+            .hrow {
+                font-size: .78rem
+            }
+        }
+
+        /* ============================================================
+   REDUCED MOTION
+============================================================ */
+        @media (prefers-reduced-motion:reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+                transition-delay: 0s !important
+            }
+
+            .ticker-track {
+                animation: none
+            }
+
+            .ecg-sweep {
+                animation: none;
+                stroke-dasharray: none;
+                opacity: .4
+            }
+
+            .beat {
+                animation: none
+            }
+
+            .rv {
+                opacity: 1;
+                translate: none
+            }
+
+            html {
+                scroll-behavior: auto
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a class="skip" href="#main">Skip to content</a>
+
+    <!-- ============ CHART TAB NAV ============ -->
+    <nav class="tabs" aria-label="Section tabs">
+        <a href="#practice" data-tab="practice"><b>01</b>The Practice</a>
+        <a href="#menu" data-tab="menu"><b>03</b>Care Menu</a>
+        <a href="#doctors" data-tab="doctors"><b>04</b>Doctors</a>
+        <a href="#hours" data-tab="hours"><b>05</b>Hours</a>
+        <a href="#faq" data-tab="faq"><b>06</b>FAQ</a>
+        <a href="#book" data-tab="book"><b>07</b>Book</a>
+    </nav>
+
+    <!-- ============ HEADER ============ -->
+    <header id="site-header">
+        <a class="logo" href="#top" aria-label="Hale, back to top">
+            <svg class="mark" viewBox="0 0 44 44" aria-hidden="true">
+                <rect x="1" y="1" width="42" height="42" rx="11" fill="#22303E" />
+                <path d="M22 12v20M12 22h20" stroke="#F6F1E7" stroke-width="5" stroke-linecap="round" />
+                <path d="M7 22h6l3-6 4 12 3-6h14" stroke="#D64538" stroke-width="2.6" fill="none" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            <span><b>HALE</b><small>Family Medicine</small></span>
+        </a>
+        <nav class="main" aria-label="Primary">
+            <a href="#practice">The Practice</a>
+            <a href="#menu">Care Menu</a>
+            <a href="#doctors">Doctors</a>
+            <a href="#hours">Hours</a>
+            <a href="#faq">FAQ</a>
+        </nav>
+        <div class="h-right">
+            <span class="h-phone">(234) 7088-9553</span>
+            <a href="#book" class="btn btn--red h-book">Book a visit</a>
+            <button id="menu-btn" aria-expanded="false" aria-controls="mobile-nav">Menu</button>
+        </div>
+    </header>
+
+    <nav id="mobile-nav" aria-label="Mobile">
+        <a href="#practice">The Practice</a>
+        <a href="#menu">Care Menu</a>
+        <a href="#doctors">Doctors</a>
+        <a href="#hours">Hours</a>
+        <a href="#faq">FAQ</a>
+        <a href="#book" class="btn btn--red">Book a visit</a>
+    </nav>
+
+    <main id="main">
+
+        <!-- ============ HERO ============ -->
+        <section class="hero wrap" id="top">
+            <div class="hero-meta rv in">
+                <span class="label">Family &amp; preventive medicine</span><span class="dot" aria-hidden="true"></span>
+                <span class="label">Providence, RI</span><span class="dot" aria-hidden="true"></span>
+                <span class="label">Accepting new patients</span>
+            </div>
+            <div class="hero-grid">
+                <h1 class="rv in">Medicine that has <em>time</em> for you.</h1>
+                <div class="hero-side rv in" style="--d:.15s">
+                    <p class="lede">Hale is a small family practice where the first visit runs a full hour, sick visits
+                        happen this week, and the prices are printed on the wall. One doctor who knows your name, and
+                        your chart.</p>
+                    <div class="hero-ctas">
+                        <a href="#book" class="btn btn--red">Request an appointment</a>
+                        <a href="#menu" class="btn btn--ghost">See flat prices</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vitals rv in" style="--d:.3s" aria-label="Sample vital signs">
+                <div class="v"><span class="v-l">Heart rate</span><span class="v-n"><span class="beat"
+                            aria-hidden="true"></span><b id="v-hr">64</b><small>bpm</small></span></div>
+                <div class="v"><span class="v-l">Blood pressure</span><span class="v-n"><b id="v-bp">118/76</b></span>
+                </div>
+                <div class="v"><span class="v-l">O₂ saturation</span><span class="v-n"><b
+                            id="v-o2">99</b><small>%</small></span></div>
+                <div class="v"><span class="v-l">Temperature</span><span class="v-n"><b>98.6</b><small>°F</small></span>
+                </div>
+                <div class="v-note">Resting values. Like your visit should be.</div>
+            </div>
+            <div class="ecg" aria-hidden="true">
+                <svg viewBox="0 0 1200 140" preserveAspectRatio="none">
+                    <path class="ecg-base" id="ecg-base" pathLength="1000" />
+                    <path class="ecg-sweep" id="ecg-sweep" pathLength="1000" />
+                </svg>
+            </div>
+        </section>
+
+        <!-- ============ TICKER ============ -->
+        <div class="ticker" aria-hidden="true">
+            <div class="ticker-track">
+                <div class="ticker-group">
+                    <span>60 minute first visits</span><b>✚</b><span>same week appointments</span><b>✚</b><span>flat
+                        published prices</span><b>✚</b>
+                    <span>labs on site</span><b>✚</b><span>ages 2 to 102</span><b>✚</b><span>written plans, same
+                        day</span><b>✚</b>
+                </div>
+                <div class="ticker-group">
+                    <span>60 minute first visits</span><b>✚</b><span>same week appointments</span><b>✚</b><span>flat
+                        published prices</span><b>✚</b>
+                    <span>labs on site</span><b>✚</b><span>ages 2 to 102</span><b>✚</b><span>written plans, same
+                        day</span><b>✚</b>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ PRACTICE ============ -->
+        <section class="practice wrap" id="practice">
+            <div class="sec-head rv">
+                <span class="kicker label">01 / The practice</span>
+                <h2 class="big">Time is the most underrated medicine <em>there is.</em></h2>
+            </div>
+            <div class="pra-grid">
+                <div class="rv">
+                    <p class="lede">Most primary care is scheduled in seven minute slices. Nobody gets heard, problems
+                        get a prescription instead of a plan, and patients learn to stop mentioning the thing that's
+                        actually bothering them.</p>
+                    <p class="lede" style="margin-top:1.2rem">We built Hale around the opposite bet. Fewer patients per
+                        doctor, visits long enough to think in, and a chart that's actually read before you walk in. It
+                        turns out that when you give a good doctor an hour, they need fewer tests, fewer referrals, and
+                        a lot fewer follow ups.</p>
+                </div>
+                <div class="stats rv" style="--d:.15s">
+                    <div class="stat"><b><i>60</i> min</b><span>First visits, standard</span></div>
+                    <div class="stat"><b>9 min</b><span>Average callback</span></div>
+                    <div class="stat"><b>2,400<i>+</i></b><span>Charts in our care</span></div>
+                    <div class="stat"><b>4.9<i>/5</i></b><span>Patient rating</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ VISIT STEPS ============ -->
+        <section class="visit" id="visit">
+            <div class="wrap">
+                <div class="sec-head rv">
+                    <span class="kicker label">02 / How a visit works</span>
+                    <h2 class="big">Four steps. Zero phone <em>trees.</em></h2>
+                </div>
+                <div class="steps">
+                    <div class="step rv" style="--d:.05s">
+                        <span class="step-no">STEP 01</span>
+                        <h3>Tell us what's going on</h3>
+                        <p>Two minutes in the form below. Plain words are fine, that's what it's for.</p>
+                    </div>
+                    <div class="step rv" style="--d:.15s">
+                        <span class="step-no">STEP 02</span>
+                        <h3>We confirm a time</h3>
+                        <p>A real person from the desk replies within the hour during clinic time.</p>
+                    </div>
+                    <div class="step rv" style="--d:.25s">
+                        <span class="step-no">STEP 03</span>
+                        <h3>Come in, or stay home</h3>
+                        <p>Visit us on Bowen Street, or book a home visit. Labs are drawn on site.</p>
+                    </div>
+                    <div class="step rv" style="--d:.35s">
+                        <span class="step-no">STEP 04</span>
+                        <h3>Leave with a plan</h3>
+                        <p>A written plan in plain English, sent the same day. No riddles, no portals.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ CARE MENU ============ -->
+        <section class="menu-sec wrap" id="menu">
+            <div class="sec-head rv">
+                <span class="kicker label">03 / The care menu</span>
+                <h2 class="big">The menu, with <em>prices.</em></h2>
+                <p class="lede" style="margin-top:1.2rem">Every price is the whole price. No facility fees, no surprise
+                    line items, no decoding. Tap any visit to see what's included.</p>
+            </div>
+            <div class="menu-note rv">
+                <span class="chip"><b>✓</b> FSA &amp; HSA cards welcome</span>
+                <span class="chip"><b>✓</b> Superbills for reimbursement</span>
+                <span class="chip"><b>✓</b> Labs billed at cost</span>
+            </div>
+            <div id="menu-list" class="rv"></div>
+        </section>
+
+        <!-- ============ DOCTORS ============ -->
+        <section class="docs" id="doctors">
+            <div class="wrap">
+                <div class="sec-head rv">
+                    <span class="kicker label">04 / The doctors</span>
+                    <h2 class="big">The people behind <em>the door.</em></h2>
+                </div>
+                <div class="d-grid">
+                    <article class="d-card rv" style="--d:.05s">
+                        <div class="d-tile dt-navy">
+                            <span class="d-mono" aria-hidden="true">JO</span>
+                            <svg class="d-ecg" viewBox="0 0 120 40" aria-hidden="true">
+                                <path d="M0 20h34l6-10 8 22 6-12h12l4-6 6 12h44" />
+                            </svg>
+                            <div>
+                                <h3>Dr. W.K Kayode</h3><span>Family medicine · 14 yrs</span>
+                            </div>
+                        </div>
+                        <p class="d-note">"I went into family medicine because I like knowing what happened next."</p>
+                        <button class="d-book" data-doc="Dr. W.K Kayode">Book with Dr. Kayode →</button>
+                    </article>
+                    <article class="d-card rv" style="--d:.15s">
+                        <div class="d-tile dt-red">
+                            <span class="d-mono" aria-hidden="true">MS</span>
+                            <svg class="d-ecg" viewBox="0 0 120 40" aria-hidden="true">
+                                <path d="M0 20h34l6-10 8 22 6-12h12l4-6 6 12h44" />
+                            </svg>
+                            <div>
+                                <h3>Dr. Miguel Santana</h3><span>Internal medicine · 11 yrs</span>
+                            </div>
+                        </div>
+                        <p class="d-note">"Half of doctoring is listening. The other half is not rushing the listening."
+                        </p>
+                        <button class="d-book" data-doc="Dr. Miguel Santana">Book with Dr. Santana →</button>
+                    </article>
+                    <article class="d-card rv" style="--d:.25s">
+                        <div class="d-tile dt-green">
+                            <span class="d-mono" aria-hidden="true">PR</span>
+                            <svg class="d-ecg" viewBox="0 0 120 40" aria-hidden="true">
+                                <path d="M0 20h34l6-10 8 22 6-12h12l4-6 6 12h44" />
+                            </svg>
+                            <div>
+                                <h3>Dr. Priya Raman</h3><span>Pediatrics · 9 yrs</span>
+                            </div>
+                        </div>
+                        <p class="d-note">"A checkup should end with a high five, not tears. We keep stickers in stock."
+                        </p>
+                        <button class="d-book" data-doc="Dr. Priya Raman">Book with Dr. Raman →</button>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ CHART NOTES ============ -->
+        <section class="notes wrap" id="notes">
+            <div class="sec-head rv" style="text-align:center">
+                <span class="kicker label" style="justify-content:center">Chart notes · from patients</span>
+            </div>
+            <div class="n-stack" id="n-stack">
+                <div class="n-slide on">
+                    <div class="n-card">
+                        <p>"My doctor sent my labs with a sentence explaining each one. In English. I have never had
+                            that before."</p>
+                        <footer><span><b>R. Alvarez</b> · patient since 2021</span><span>Note filed · Mar 2025</span>
+                        </footer>
+                    </div>
+                </div>
+                <div class="n-slide">
+                    <div class="n-card">
+                        <p>"Our first appointment ran fifty five minutes and nobody seemed in a hurry to be anywhere
+                            else. Imagine."</p>
+                        <footer><span><b>The Hendersons</b> · family of four</span><span>Note filed · Feb 2025</span>
+                        </footer>
+                    </div>
+                </div>
+                <div class="n-slide">
+                    <div class="n-card">
+                        <p>"Called about my kid's fever at 4pm on a Friday. The doctor called back in nine minutes.
+                            Nine."</p>
+                        <footer><span><b>T. Nguyen</b> · patient since 2019</span><span>Note filed · Jan 2025</span>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ THE IDENTITY / PLATES ============ -->
+        <section class="plates-sec" id="identity">
+            <div class="wrap">
+                <div class="kit-row">
+                    <div class="rv">
+                        <span class="kicker label">05 / The identity</span>
+                        <h2 class="big">The chart, carried <em>through.</em></h2>
+                        <p class="kit-copy">The identity borrows straight from the clinic: ECG paper grid, chart ink
+                            navy, one signal red, and handwriting where a human would write. Open the <b>mockup kit</b>
+                            for fullscreen, studio lit plates, ready to screenshot for a gig gallery or drop into a
+                            Figma frame.</p>
+                    </div>
+                    <button id="kit-open" class="btn btn--ink rv" style="--d:.15s" type="button">Open mockup
+                        kit</button>
+                </div>
+
+                <div class="plate-grid">
+                    <!-- PLATE 1 -->
+                    <div class="plate-wrap rv">
+                        <div class="plate pl-1">
+                            <div class="moc p1-sign">
+                                <span class="plus" aria-hidden="true"></span>
+                                <span class="word">HALE</span>
+                                <span class="sub">Family &amp; Preventive Medicine</span>
+                            </div>
+                            <div class="moc p1-way">
+                                <span>LAB <i>→</i></span>
+                                <span class="wdiv" aria-hidden="true"></span>
+                                <span>EXAM ROOMS <i>→</i></span>
+                            </div>
+                            <div class="moc p1-room"><small>EXAM</small><b>2</b></div>
+                            <div class="moc p1-card">
+                                <span class="c1">Appointment</span>
+                                <span class="c2">THU · MAR 14 · 9:20 AM</span>
+                                <span class="c3">Dr. W.K. Kayode · Exam 2</span>
+                            </div>
+                            <div class="moc p1-knock">PLEASE<br>KNOCK</div>
+                            <div class="moc p1-pen" aria-hidden="true"></div>
+                        </div>
+                        <p class="plate-cap"><b>Fig. 01</b> · Front of house: wall sign, wayfinding, exam plate,
+                            appointment card.</p>
+                    </div>
+
+                    <!-- PLATE 2 -->
+                    <div class="plate-wrap rv" style="--d:.1s">
+                        <div class="plate pl-2">
+                            <div class="moc p2-folder">
+                                <span class="ftab">A · F</span>
+                                <div class="p2-label">
+                                    <span class="l1">Chart Nº 2481</span>
+                                    <span class="l2">Alvarez, H.</span>
+                                    <span class="l3"></span><span class="l3"></span>
+                                </div>
+                                <span class="fprint">HALE · PATIENT MEDICAL RECORD</span>
+                            </div>
+                            <div class="moc p2-pad">
+                                <div class="ph"><b>HALE FAMILY MEDICINE</b><span class="rx">℞</span></div>
+                                <span class="pline"></span><span class="pline"></span><span class="pline"></span><span
+                                    class="pline"></span>
+                                <div class="psig"><i>W.K. Kayode, MD</i><span>Substitution permitted</span></div>
+                            </div>
+                            <div class="moc p2-letter">
+                                <div class="lh"><i aria-hidden="true"></i><b>HALE FAMILY MEDICINE</b></div>
+                                <span class="ln"></span><span class="ln"></span><span class="ln"></span>
+                                <span class="lf">25 OYUN ST · KADUNA, NG</span>
+                            </div>
+                            <div class="moc p2-bc">
+                                <i aria-hidden="true"></i>
+                                <span><b>W.K. KAYODE, MD</b><br><span>FAMILY MEDICINE</span></span>
+                            </div>
+                        </div>
+                        <p class="plate-cap"><b>Fig. 02</b> · Paperwork: patient folder, prescription pad, letterhead,
+                            card.</p>
+                    </div>
+
+                    <!-- PLATE 3 -->
+                    <div class="plate-wrap rv">
+                        <div class="plate pl-3">
+                            <div class="moc p3-bottle">
+                                <div class="p3-blabel">
+                                    <i>HALE PHARMACY</i>
+                                    <b>Amoxicillin</b>
+                                    <span>500 mg · 21 caps</span>
+                                    <span class="brule" aria-hidden="true"></span>
+                                    <span>Take one with food</span>
+                                    <span>Refills: 2 · Discard Mar 2026</span>
+                                </div>
+                            </div>
+                            <div class="moc p3-blister">
+                                <p class="bhead">HALE · BLISTER 12</p>
+                                <div class="bpills" aria-hidden="true"></div>
+                            </div>
+                            <div class="moc p3-oint"><i aria-hidden="true"></i><span>HALE</span></div>
+                            <div class="moc p3-card">
+                                <div class="row"><b>HALE</b><span>MEMBER</span></div>
+                                <svg viewBox="0 0 120 16" aria-hidden="true">
+                                    <path d="M0 8h30l6-6 8 12 6-6h20l4-4 5 8h41" />
+                                </svg>
+                                <div class="who"><span>H. ALVAREZ</span><span>ID HT-2481 · SINCE 2021</span></div>
+                            </div>
+                            <div class="moc p3-thermo" aria-hidden="true"></div>
+                        </div>
+                        <p class="plate-cap"><b>Fig. 03</b> · Pharmacy: amber bottle, blister pack, ointment, member
+                            card.</p>
+                    </div>
+
+                    <!-- PLATE 4 -->
+                    <div class="plate-wrap rv" style="--d:.1s">
+                        <div class="plate pl-4">
+                            <div class="moc p4-phone p4-a">
+                                <div class="p4-scr">
+                                    <p class="p4-h">Your results</p>
+                                    <p class="p4-sub">LABS · MAR 12</p>
+                                    <div class="p4-res"><span>Cholesterol · 178</span><i>NORMAL</i></div>
+                                    <div class="p4-res"><span>Vitamin D · 42</span><i>NORMAL</i></div>
+                                    <div class="p4-res"><span>A1C · 5.2</span><i>NORMAL</i></div>
+                                    <div class="p4-btn">Message care team</div>
+                                </div>
+                            </div>
+                            <div class="moc p4-phone p4-b">
+                                <div class="p4-scr">
+                                    <p class="p4-h" style="margin-top:2.2cqw">Dr. Kayode</p>
+                                    <div class="p4-msg">
+                                        <span>How's the knee treating you this week?</span>
+                                        <span class="me">Better. Stairs still win, but it's close.</span>
+                                        <span>Good. Keep the plan one more week, then we talk.</span>
+                                    </div>
+                                    <div class="p4-input">Write a message…</div>
+                                </div>
+                            </div>
+                            <div class="moc p4-notif"><i aria-hidden="true"></i><span>Reminder · Annual Deep Dive, Thu
+                                    9:20 AM</span></div>
+                            <div class="moc p4-report">
+                                <span class="rk">HALE · 2025</span>
+                                <p class="rt">YOUR YEAR<br>IN CHARTS</p>
+                                <span class="rr" aria-hidden="true"></span>
+                                <div class="p4-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                                <span class="rf">Prepared for H. Alvarez</span>
+                            </div>
+                            <div class="moc p4-checkin">
+                                <div class="ck"><b>CHECK IN</b><span>EXAM 2 · 9:20 AM</span></div>
+                                <span class="barcode" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                        <p class="plate-cap"><b>Fig. 04</b> · Patient app: results, messages, annual report, check in
+                            code.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ HOURS ============ -->
+        <section class="hours wrap" id="hours">
+            <div class="sec-head rv">
+                <span class="kicker label">06 / Hours &amp; location</span>
+                <h2 class="big">When we're <em>in.</em></h2>
+            </div>
+            <div class="hrs-grid">
+                <div class="hrs-table rv">
+                    <div class="hrow"><span class="day">Monday</span><span class="lead"></span><span class="time">7:30
+                            am · 6:00 pm</span></div>
+                    <div class="hrow"><span class="day">Tuesday</span><span class="lead"></span><span class="time">7:30
+                            am · 6:00 pm</span></div>
+                    <div class="hrow"><span class="day">Wednesday</span><span class="lead"></span><span
+                            class="time">7:30 am · 6:00 pm</span></div>
+                    <div class="hrow"><span class="day">Thursday</span><span class="lead"></span><span class="time">7:30
+                            am · 6:00 pm</span></div>
+                    <div class="hrow"><span class="day">Friday</span><span class="lead"></span><span class="time">7:30
+                            am · 5:00 pm</span></div>
+                    <div class="hrow"><span class="day">Saturday</span><span class="lead"></span><span
+                            class="time"><b>Walk in labs only</b> · 8:00 am · 12:00 pm</span></div>
+                    <div class="hrow"><span class="day">Sunday</span><span class="lead"></span><span
+                            class="time">Closed</span></div>
+                </div>
+                <div class="loc-card rv" style="--d:.15s">
+                    <h3>25 Oyun Street</h3>
+                    <p>Kaduna, NG 12345. Street parking on Oyun Street, a small lot behind the building, and the number 40
+                        bus stops at the corner. Ground floor entrance, no steps.</p>
+                    <p>The waiting room has real chairs, decent coffee, and a no TV policy. Bring a book.</p>
+                    <span class="lab">✚ Walk in lab draws · Saturdays 8 to 12</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ FAQ ============ -->
+        <section class="faq" id="faq">
+            <div class="wrap">
+                <div class="sec-head rv">
+                    <span class="kicker label">07 / Fair questions</span>
+                    <h2 class="big">Asked <em>often.</em></h2>
+                </div>
+                <div class="faq-list" id="faq-list">
+                    <div class="f-item rv">
+                        <button class="f-q" aria-expanded="false">
+                            <h3>Do you take insurance?</h3><span class="fx" aria-hidden="true">+</span>
+                        </button>
+                        <div class="f-a">
+                            <div class="fa-in">
+                                <p>We're a pay per visit practice with flat published prices, which is usually cheaper
+                                    than a capped network plan's copays for the same things. Pay with card, FSA, or HSA.
+                                    Every visit comes with a superbill you can submit to your insurer for out of network
+                                    reimbursement, and we'll help you fill it out.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="f-item rv" style="--d:.05s">
+                        <button class="f-q" aria-expanded="false">
+                            <h3>How fast can I actually be seen?</h3><span class="fx" aria-hidden="true">+</span>
+                        </button>
+                        <div class="f-a">
+                            <div class="fa-in">
+                                <p>Routine visits usually within the week. Sick visits are held back daily, so if you
+                                    message before 10 am there's a very good chance we see you the same day. Urgent
+                                    matters get a callback from a doctor, not a triage script, and our average is nine
+                                    minutes.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="f-item rv" style="--d:.1s">
+                        <button class="f-q" aria-expanded="false">
+                            <h3>What about labs and prescriptions?</h3><span class="fx" aria-hidden="true">+</span>
+                        </button>
+                        <div class="f-a">
+                            <div class="fa-in">
+                                <p>Labs are drawn on site and billed at cost, which we show you before the needle comes
+                                    out. Prescriptions are sent to your pharmacy the same day, and routine refills can
+                                    be requested with one message. No "call back in three business days."</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="f-item rv" style="--d:.15s">
+                        <button class="f-q" aria-expanded="false">
+                            <h3>Do you see kids?</h3><span class="fx" aria-hidden="true">+</span>
+                        </button>
+                        <div class="f-a">
+                            <div class="fa-in">
+                                <p>From age two up. Checkups, growth and development, school and camp forms, and
+                                    vaccines on schedule. Dr. Raman keeps a sticker drawer of considerable reputation.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="f-item rv" style="--d:.2s">
+                        <button class="f-q" aria-expanded="false">
+                            <h3>What if I need a specialist?</h3><span class="fx" aria-hidden="true">+</span>
+                        </button>
+                        <div class="f-a">
+                            <div class="fa-in">
+                                <p>We refer to people we'd send our own families to, inside your network whenever
+                                    possible. Your records go the same day, and we stay in the loop afterwards instead
+                                    of waving goodbye. A referral from Hale comes with a summary, not a fax number.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ BOOK ============ -->
+        <section class="book wrap" id="book">
+            <div class="book-grid">
+                <div class="rv">
+                    <span class="kicker label">08 / Book</span>
+                    <h2 class="big">Request an <em>appointment.</em></h2>
+                    <p class="lede" style="margin-top:1.4rem">Tell us what's going on in your own words. A real person
+                        from the desk will confirm a time within the hour during clinic hours. New patients welcome, no
+                        referral needed.</p>
+                    <p class="lede" style="margin-top:1rem">Prefer a human voice? Call the desk at (234) 708-8955-340. It
+                        rings in the room with the coffee.</p>
+                </div>
+                <div class="form-card rv" style="--d:.15s">
+                    <form id="book-form" novalidate>
+                        <div class="f-two">
+                            <div class="f-row">
+                                <label for="b-name">Name</label>
+                                <input id="b-name" name="name" type="text" placeholder="Hana Alvarez" required
+                                    autocomplete="name">
+                            </div>
+                            <div class="f-row">
+                                <label for="b-phone">Phone</label>
+                                <input id="b-phone" name="phone" type="tel" placeholder="(234) 708-8955-340" required
+                                    autocomplete="tel">
+                            </div>
+                        </div>
+                        <div class="f-row">
+                            <label for="b-reason">What's this visit for?</label>
+                            <select id="b-reason" name="reason" required>
+                                <option value="" disabled selected>Choose one</option>
+                                <option>The Annual Deep Dive</option>
+                                <option>Sick Visit, Seen Fast</option>
+                                <option>The Follow-up</option>
+                                <option>The Home Visit</option>
+                                <option>Mind Check-in</option>
+                                <option>Kids' Checkup</option>
+                                <option>Not sure yet</option>
+                            </select>
+                        </div>
+                        <div class="f-row">
+                            <label>Best time of day</label>
+                            <div class="pills" role="radiogroup" aria-label="Best time of day">
+                                <input type="radio" id="t-m" name="time" value="Morning"><label
+                                    for="t-m">Morning</label>
+                                <input type="radio" id="t-a" name="time" value="Afternoon"><label
+                                    for="t-a">Afternoon</label>
+                                <input type="radio" id="t-e" name="time" value="Evening"><label
+                                    for="t-e">Evening</label>
+                            </div>
+                        </div>
+                        <div class="f-row">
+                            <label for="b-notes">Anything we should know? <span
+                                    style="text-transform:none;letter-spacing:0">(optional)</span></label>
+                            <textarea id="b-notes" name="notes"
+                                placeholder="Symptoms, questions, a doctor you'd prefer, whatever helps."></textarea>
+                        </div>
+                        <button class="btn btn--red" type="submit">Request appointment</button>
+                        <p class="f-small">No card required to book. We confirm within the hour, during clinic time.</p>
+                    </form>
+                    <div class="book-done" id="book-done" role="status">
+                        <div class="bd-ring" aria-hidden="true">✓</div>
+                        <h3>Request received.</h3>
+                        <p id="book-done-txt">We'll confirm your time shortly.</p>
+                        <span class="ref" id="book-ref">REF · HT-0000</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============ EMERGENCY NOTE ============ -->
+    <div class="emergency"><b>This is a primary care practice, not an emergency service.</b> If this is an emergency,
+        call 911 or go to the nearest ER.</div>
+
+    <!-- ============ FOOTER ============ -->
+    <footer>
+        <div class="f-grid">
+            <div>
+                <div class="f-logo">
+                    <svg class="mark" viewBox="0 0 44 44" aria-hidden="true">
+                        <rect x="1" y="1" width="42" height="42" rx="11" fill="#F6F1E7" />
+                        <path d="M22 12v20M12 22h20" stroke="#22303E" stroke-width="5" stroke-linecap="round" />
+                        <path d="M7 22h6l3-6 4 12 3-6h14" stroke="#D64538" stroke-width="2.6" fill="none"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <b>HALE</b>
+                </div>
+                <p>A small family practice on Bowen Street.<br>Sixty minute visits, flat prices, and doctors<br>who read
+                    the chart before you arrive.</p>
+            </div>
+            <div class="f-col">
+                <h4>Clinic</h4>
+                <a href="#menu">Care menu &amp; prices</a>
+                <a href="#doctors">Our doctors</a>
+                <a href="#hours">Hours &amp; directions</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <div class="f-col">
+                <h4>Visit</h4>
+                <span>25 Oyun Street</span>
+                <span>Kaduna, NG 12345</span>
+                <a href="tel:+2347088955340">(234) 708-8955-340</a>
+                <a href="mailto:kayode@halemedicine.com">kayode@halemedicine.com</a>
+            </div>
+            <div class="f-col">
+                <h4>Elsewhere</h4>
+                <a href="#" rel="noopener">Instagram</a>
+                <a href="#" rel="noopener">Google reviews</a>
+                <a href="#book">Book a visit</a>
+            </div>
+        </div>
+        <div class="f-bottom">
+            <span>© MMXXV Hale Medicine</span>
+            <span>Set in Archivo, Public Sans &amp; Space Mono</span>
+            <a href="#top">Back to the top ↑</a>
+        </div>
+    </footer>
+
+    <!-- ============ MOCKUP KIT VIEWER ============ -->
+    <div id="kit-view" role="dialog" aria-modal="true" aria-label="Mockup kit, screenshot mode">
+        <div class="k-top">
+            <span>Mockup kit · screenshot mode</span>
+            <span class="k-hint">Arrow keys or swipe to change slides</span>
+            <button id="kit-bg" type="button">BG · Bone</button>
+            <button id="kit-close" type="button">Close ✕</button>
+        </div>
+        <div class="k-stage">
+            <div class="k-holder" id="kit-holder"></div>
+        </div>
+        <div class="k-bottom">
+            <button id="kit-prev" type="button">← Prev</button>
+            <span id="kit-count">01 / 04</span>
+            <button id="kit-next" type="button">Next →</button>
+        </div>
+        <p class="k-tip">Tip · screenshot the plate for Fiverr gallery images, or drop the shot straight into a Figma
+            frame</p>
+    </div>
+
+    <script>
+        (function () {
+            "use strict";
+            const qs = (s, c) => (c || document).querySelector(s);
+            const qsa = (s, c) => Array.from((c || document).querySelectorAll(s));
+            const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            /* ---------- ECG path (built once, reused for base + sweep) ---------- */
+            const seg = "L96 72 C102 72 104 62 110 62 C116 62 118 72 124 72 L138 72 L148 26 L158 108 L166 72 L190 72 C198 72 200 78 208 78 C216 78 218 72 226 72 L240 72";
+            const d = "M0 72 " + seg.repeat(5) + " L1200 72";
+            qs('#ecg-base').setAttribute('d', d);
+            qs('#ecg-sweep').setAttribute('d', d);
+
+            /* ---------- Header ---------- */
+            const header = qs('#site-header');
+            addEventListener('scroll', () => header.classList.toggle('scrolled', scrollY > 40), { passive: true });
+
+            /* ---------- Mobile nav ---------- */
+            const mnav = qs('#mobile-nav'), mbtn = qs('#menu-btn');
+            function closeNav() { mnav.classList.remove('open'); mbtn.setAttribute('aria-expanded', 'false'); document.body.classList.remove('no-scroll') }
+            mbtn.addEventListener('click', () => {
+                const open = mnav.classList.toggle('open');
+                mbtn.setAttribute('aria-expanded', open);
+                document.body.classList.toggle('no-scroll', open);
+            });
+            qsa('#mobile-nav a').forEach(a => a.addEventListener('click', closeNav));
+
+            /* ---------- Reveals ---------- */
+            const io = new IntersectionObserver(es => es.forEach(e => {
+                if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) }
+            }), { threshold: .12, rootMargin: '0px 0px -6% 0px' });
+            qsa('.rv').forEach(el => io.observe(el));
+            /* steps get their own observer so checkboxes tick when seen */
+            qsa('.step').forEach(s => io.observe(s));
+
+            /* ---------- Chart tab scrollspy ---------- */
+            const tabLinks = qsa('.tabs a');
+            if ('IntersectionObserver' in window && tabLinks.length) {
+                const spy = new IntersectionObserver(es => {
+                    es.forEach(en => {
+                        if (en.isIntersecting) {
+                            tabLinks.forEach(t => t.classList.toggle('on', t.dataset.tab === en.target.id));
+                        }
+                    });
+                }, { rootMargin: '-40% 0px -55% 0px' });
+                tabLinks.forEach(t => { const s = qs('#' + t.dataset.tab); if (s) spy.observe(s) });
+            }
+
+            /* ---------- Vitals ticker ---------- */
+            const hrEl = qs('#v-hr'), bpEl = qs('#v-bp'), o2El = qs('#v-o2');
+            if (!reduced) {
+                setInterval(() => {
+                    hrEl.textContent = 61 + Math.round(Math.random() * 7);
+                    bpEl.textContent = Math.random() > .5 ? '118/76' : '120/78';
+                    o2El.textContent = Math.random() > .5 ? '99' : '98';
+                }, 2600);
+            }
+
+            /* ---------- Care menu ---------- */
+            const MENU = [
+                { n: "The Annual Deep Dive", d: "60 min · the full picture", p: "$290", inc: ["Full history & exam", "Head to toe screening", "Bloodwork panel", "Blood pressure, heart, lungs", "Written plan, same day"] },
+                { n: "Sick Visit, Seen Fast", d: "30 min · usually same day", p: "$95", inc: ["Same or next day slot", "Strep, flu, COVID, UTI tests on site", "Prescription if needed", "Doctor callback next morning"] },
+                { n: "The Follow-up", d: "20 min · check the plan", p: "$75", inc: ["Review how the plan is working", "Adjust meds or exercises", "Results explained in English", "Referrals, if needed"] },
+                { n: "The Home Visit", d: "45 min · we come to you", p: "$220", inc: ["For the housebound or new parents", "Basic exam & vitals", "Labs drawn at home", "Within 10 miles of the clinic"] },
+                { n: "Mind Check-in", d: "45 min · no waiting list", p: "$110", inc: ["Anxiety & depression screening", "Sleep, stress, energy review", "Medication options, honestly explained", "Therapy referral if you want one"] },
+                { n: "Kids' Checkup", d: "40 min · ages 2 and up", p: "$130", inc: ["Growth & development", "School & camp forms signed", "Vaccines on schedule", "Sticker drawer access"] }
+            ];
+            const menuList = qs('#menu-list');
+            MENU.forEach((m, i) => {
+                const item = document.createElement('div');
+                item.className = 'menu-item';
+                const no = String(i + 1).padStart(2, '0');
+                item.innerHTML =
+                    '<button class="menu-row" aria-expanded="false">' +
+                    '<span class="m-no">' + no + '</span>' +
+                    '<span class="m-name"><b>' + m.n + '</b><i>' + m.d + '</i></span>' +
+                    '<span class="m-price">' + m.p + '<small>flat · all in</small></span>' +
+                    '<span class="mx" aria-hidden="true">+</span>' +
+                    '</button>' +
+                    '<div class="menu-detail"><div class="md-in"><div class="md-body">' +
+                    '<ul>' + m.inc.map(x => '<li>' + x + '</li>').join('') + '</ul>' +
+                    '<button class="md-book" data-class="' + m.n + '">Book this visit →</button>' +
+                    '</div></div></div>';
+                menuList.appendChild(item);
+                item.querySelector('.menu-row').addEventListener('click', () => {
+                    const open = item.classList.toggle('open');
+                    item.querySelector('.menu-row').setAttribute('aria-expanded', open);
+                });
+            });
+
+            /* ---------- Notes rotator ---------- */
+            const ns = qsa('#n-stack .n-slide'); let ni = 0;
+            if (ns.length > 1 && !reduced) {
+                setInterval(() => {
+                    ns[ni].classList.remove('on');
+                    ni = (ni + 1) % ns.length;
+                    ns[ni].classList.add('on');
+                }, 7000);
+            }
+
+            /* ---------- FAQ ---------- */
+            qsa('.f-item').forEach(item => {
+                const q = item.querySelector('.f-q');
+                q.addEventListener('click', () => {
+                    const open = item.classList.toggle('open');
+                    q.setAttribute('aria-expanded', open);
+                });
+            });
+
+            /* ---------- Booking prefill (care menu + doctors) ---------- */
+            const reason = qs('#b-reason'), notes = qs('#b-notes');
+            function goToForm() {
+                qs('#book').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+                setTimeout(() => qs('#b-name').focus({ preventScroll: true }), reduced ? 0 : 700);
+            }
+            document.addEventListener('click', e => {
+                const mb = e.target.closest('.md-book');
+                if (mb) {
+                    const name = mb.dataset.class;
+                    const match = qsa('option', reason).find(o => o.textContent === name);
+                    if (match) reason.value = match.value || match.textContent;
+                    mb.textContent = 'Selected ✓'; mb.style.pointerEvents = 'none';
+                    goToForm();
+                    return;
+                }
+                const db = e.target.closest('.d-book');
+                if (db) {
+                    const doc = db.dataset.doc;
+                    notes.value = 'Booking with ' + doc + ', if possible.';
+                    goToForm();
+                }
+            });
+
+            /* ---------- Booking form ---------- */
+            const form = qs('#book-form'), done = qs('#book-done'), doneTxt = qs('#book-done-txt'), refEl = qs('#book-ref');
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                if (!form.reportValidity()) return;
+                const name = qs('#b-name').value.trim().split(' ')[0];
+                const what = reason.value;
+                const time = (qs('input[name="time"]:checked') || {}).value;
+                const ref = 'HT-' + (2000 + Math.floor(Math.random() * 7999));
+                doneTxt.textContent = 'Thanks' + (name ? ', ' + name : '') + '. We\'ll confirm ' +
+                    (time ? time.toLowerCase() + ' ' : '') +
+                    (what && what !== 'Not sure yet' ? 'for your ' + what.toLowerCase() : 'a time') +
+                    ' within the hour, during clinic time.';
+                refEl.textContent = 'REF · ' + ref;
+                form.style.display = 'none';
+                done.classList.add('show');
+            });
+
+            /* ============================================================
+               MOCKUP KIT
+            ============================================================ */
+            const kitView = qs('#kit-view'), holder = qs('#kit-holder'), kCount = qs('#kit-count'), kBgBtn = qs('#kit-bg');
+            const plates = qsa('.plate').map(p => p.cloneNode(true));
+            let ki = 0;
+            const bgs = [{ c: '', l: 'BG · Bone' }, { c: 'k-navy', l: 'BG · Navy' }, { c: 'k-brick', l: 'BG · Brick' }];
+            let bi = 0;
+            function showSlide(i) {
+                if (!plates.length) return;
+                ki = (i + plates.length) % plates.length;
+                holder.innerHTML = '';
+                const node = plates[ki].cloneNode(true);
+                holder.appendChild(node);
+                kCount.textContent = String(ki + 1).padStart(2, '0') + ' / ' + String(plates.length).padStart(2, '0');
+                node.animate([{ opacity: 0, transform: 'scale(.975)' }, { opacity: 1, transform: 'scale(1)' }],
+                    { duration: reduced ? 1 : 400, easing: 'ease-out' });
+            }
+            function openKit() { showSlide(ki); kitView.classList.add('open'); document.body.classList.add('no-scroll') }
+            function closeKit() { kitView.classList.remove('open'); document.body.classList.remove('no-scroll') }
+            qs('#kit-open').addEventListener('click', openKit);
+            qs('#kit-close').addEventListener('click', closeKit);
+            qs('#kit-prev').addEventListener('click', () => showSlide(ki - 1));
+            qs('#kit-next').addEventListener('click', () => showSlide(ki + 1));
+            kBgBtn.addEventListener('click', () => {
+                bi = (bi + 1) % bgs.length;
+                kitView.classList.remove('k-navy', 'k-brick');
+                if (bgs[bi].c) kitView.classList.add(bgs[bi].c);
+                kBgBtn.textContent = bgs[bi].l;
+            });
+            let tx = 0;
+            kitView.addEventListener('touchstart', e => { tx = e.touches[0].clientX }, { passive: true });
+            kitView.addEventListener('touchend', e => {
+                const dx = e.changedTouches[0].clientX - tx;
+                if (Math.abs(dx) > 50) showSlide(dx < 0 ? ki + 1 : ki - 1);
+            }, { passive: true });
+            document.addEventListener('keydown', e => {
+                if (!kitView.classList.contains('open')) return;
+                if (e.key === 'Escape') closeKit();
+                if (e.key === 'ArrowRight') showSlide(ki + 1);
+                if (e.key === 'ArrowLeft') showSlide(ki - 1);
+            });
+        })();
+    </script>
+</body>
+
+</html>
